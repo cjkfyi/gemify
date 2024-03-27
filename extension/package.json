@@ -1,0 +1,60 @@
+{
+  "name": "gemify",
+  "displayName": "Gemify",
+  "description": "Yet another coding assistant 🌬️",
+  "version": "0.4.1",
+  "engines": {
+    "vscode": "^1.86.2"
+  },
+  "author": "@cjkfyi",
+  "license": "GPL-3.0",
+  "keywords": [
+    "ai",
+    "googleai",
+    "google",
+    "assistant",
+    "teamcoding",
+    "openai",
+    "llm",
+    "model",
+    "chatbot",
+    "codegen",
+    "gemify",
+    "gemini",
+    "autocomplete",
+    "refactor",
+    "multiturn",
+    "conversation",
+    "workspace",
+    "concept",
+    "brainstorm",
+    "javascript",
+    "typescript",
+    "golang",
+    "css",
+    "sass",
+    "bot",
+    "keybinding",
+    "documentation"
+  ],
+  "categories": [
+    "Programming Languages",
+    "Machine Learning",
+    "Snippets",
+    "Education"
+  ],
+  "activationEvents": [
+    "*"
+  ],
+  "main": "./build/extension.js",
+  "scripts": {
+    "lint": "npx eslint -c .config/.eslintrc.json .",
+    "build": "node .config/esbuild.mjs",
+    "pkg": "vsce package -o dist/gemify.vsix --yarn"
+  },
+  "devDependencies": {
+    "esbuild": "^0.20.2",
+    "eslint": "^8.56.0"
+  },
+  "dependencies": {}
+}

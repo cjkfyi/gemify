@@ -1,0 +1,11 @@
+node_modules
+.vscode-test/
+*.vsix
+.env
+.archive/
+
+# Generated files
+backend/api/gen/*.pb.go
+extension/src/gen/*.js
+extension/build/*.js
+extension/dist/*.vsix

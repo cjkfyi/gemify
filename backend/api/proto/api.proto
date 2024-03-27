@@ -1,0 +1,16 @@
+syntax = "proto3";
+package gemify;
+
+option go_package = "gemify/api";
+
+// Reps a single msg within a convo
+message Message {
+  string content = 1;
+  bool is_user = 2;
+}
+
+// GEMIFY* - BRAND
+service GeminiAPI {
+  // Sends a new msg and gets updated convo
+  rpc SendMessage(Message) returns (Message) {}
+}

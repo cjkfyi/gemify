@@ -1,0 +1,132 @@
+/* 
+... Home View
+*/
+#homeView,
+#convoView {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+header,
+main,
+footer {
+    padding: 20px;
+}
+
+main {
+    flex: 1;
+}
+
+#headerCont {
+    height: 66px;
+}
+
+#title {
+    color: white;
+    margin: auto;
+    font-size: 56px;
+    font-weight: 200;
+    font-family: monospace;
+}
+
+#subtitle {
+    color: #727D8F;
+    font-style: italic;
+}
+
+#subtitle span {
+    font-weight: 600;
+}
+
+#newConvoBtn {
+    width: calc(100%);
+    padding: 10px;
+    border: 1px solid red;
+    background-color: white;
+    cursor: pointer;
+}
+
+/* 
+... Conversation View
+*/
+
+#convoHeader {
+    height: 66px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+#backButton {
+    font-size: 20px;
+    padding: 9px;
+}
+
+#convoTitle {
+    margin: 0;
+    font-size: 26px;
+    margin-left: 20px;
+}
+
+#convoArea {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+#convoFooter {
+    height: 150px;
+    display: flex;
+    align-items: flex-end;
+}
+
+.input-container {
+    display: flex;
+    width: 100%;
+}
+
+#messageInput {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+}
+
+.buttons {
+    display: flex;
+    margin-left: 10px;
+}
+
+.buttons button {
+    padding: 5px 10px;
+    margin: 0 5px;
+    border: none;
+    background-color: #ddd;
+    cursor: pointer;
+}
+
+.message {
+    width: 80%;
+    margin-bottom: 15px;
+    padding: 8px;
+    border-radius: 5px;
+    word-wrap: break-word;
+}
+
+.conversationArea {
+    display: flex;
+    flex-direction: column;
+}
+
+.user {
+    background-color: white;
+    color: black;
+    align-self: flex-end;
+}
+
+.bot {
+    background-color: red;
+    align-self: flex-start;
+}

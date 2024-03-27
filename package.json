@@ -1,0 +1,16 @@
+{
+  "name": "gemify",
+  "description": "Yet another coding assistant 🌬️",
+  "version": "0.4.1",
+  "author": "@cjkfyi",
+  "license": "GPL-3.0",
+  "scripts": {
+    "build:extension": "cd extension && vsce package",
+    "build:backend": "cd backend && go build -o ./bin/backend ./main.go",
+    "start": "concurrently \"npm:build:extension\" \"npm:build:backend\" \"cd backend && go run ./main.go",
+    "scrub": "./scripts/scrub.sh" 
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

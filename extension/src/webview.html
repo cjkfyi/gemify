@@ -1,0 +1,61 @@
+<!--          -->
+<!-- homeView -->
+<!--          -->
+
+<div id="homeView">
+    <header id="homeHeader">
+        <div id="headerCont">
+            <h1 id="title">
+                gemify
+            </h1>
+        </div>
+        <p id="subtitle">
+            Enrich up your workspace with Google's <span>Gemini</span>!
+        </p>
+    </header>
+
+    <main></main>
+    
+    <footer>
+        <button 
+            id="newConvoBtn"
+            onclick="switchToConvoView()" 
+        >
+            New Conversation
+        </button>
+    </footer>
+</div>
+
+<!--           -->
+<!-- convoView -->
+<!--           -->
+
+<div 
+    id="convoView" 
+    style="display: none;"
+>
+    <header id="convoHeader">
+        <button 
+            id="backButton" 
+            onclick="switchToHomeView()"
+        >
+            <-
+        </button>
+        <h1 id="convoTitle">Title</h1> 
+    </header>
+
+    <main id="convoArea"></main>
+
+    <footer id="convoFooter">
+        <div class="input-container">
+            <input 
+                id="msgInput"
+                type="text"  
+                placeholder="Type your message..."
+            />
+            <div class="buttons">
+                <button id="sendBtn">Send</button>
+            </div>
+        </div>
+    </footer>
+</div>
