@@ -1,6 +1,15 @@
 // eslint-disable-next-line no-undef
 const vscode = acquireVsCodeApi();
 
+
+// Start to debunk a possibility:
+if ("WebTransport" in window) {
+    console.log("WebTransport support: ✅");
+} else {
+    console.error("WebTransport support: ❌");
+}
+
+
 // eslint-disable-next-line no-unused-vars
 function switchToConvoView() {
     document.getElementById('homeView').style.display = 'none';
