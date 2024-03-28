@@ -27,13 +27,15 @@ main {
     color: white;
     margin: auto;
     font-size: 56px;
-    font-weight: 200;
-    font-family: monospace;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif; 
 }
 
 #subtitle {
     color: #727D8F;
     font-style: italic;
+    font-family: 'Inter', sans-serif; 
+    font-weight: 300;
 }
 
 #subtitle span {
@@ -42,10 +44,18 @@ main {
 
 #newConvoBtn {
     width: calc(100%);
-    padding: 10px;
-    border: 1px solid red;
-    background-color: white;
+    height: 50px;
+    border: none;
+    border-radius: 10px;
+    background-color: #22272e;
+    color: white;
+    font-size: medium;
+    font-weight: 600;
     cursor: pointer;
+    font-family: 'Inter', sans-serif; 
+}
+#newConvoBtn:hover {
+    background-color: #1b1f25;
 }
 
 /* 
