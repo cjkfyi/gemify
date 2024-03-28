@@ -5,8 +5,17 @@ node_modules
 .archive/
 
 # Generated files
-extension/build/*.js
-extension/dist/*.vsix
-backend/api/gen/*.pb.go
-backend/data
+extension/build/*
+!extension/build/.gitkeep
 
+extension/dist/*
+!extension/dist/.gitkeep
+
+backend/api/gen/*
+!backend/api/gen/.gitkeep
+
+backend/data/*
+!backend/data/.gitkeep
+
+backend/keys/*
+!backend/keys/.gitkeep
