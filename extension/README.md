@@ -1,5 +1,5 @@
-# Gemify
+# GEMIFY
 
-> v0.4.1
+> v0.4.2
 
 Yet another coding assistant 🌬️ 
