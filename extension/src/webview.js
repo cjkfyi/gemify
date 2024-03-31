@@ -1,12 +1,11 @@
 // eslint-disable-next-line no-undef
 const vscode = acquireVsCodeApi();
 
-
 // Start to debunk a possibility:
-if ("WebTransport" in window) {
-    console.log("WebTransport support: ✅");
+if ("WebSocket" in window) {
+    console.log("WebSocket support: ✅");
 } else {
-    console.error("WebTransport support: ❌");
+    console.error("WebSocket support: ❌");
 }
 
 

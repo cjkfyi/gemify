@@ -1,9 +1,9 @@
 {
   "name": "gemify",
   "description": "Yet another coding assistant 🌬️",
-  "version": "0.4.2",
+  "version": "0.5.1",
   "author": "@cjkfyi",
-  "license": "GPL-3.0",
+  "license": "MIT",
   "scripts": {
     "build:extension": "cd extension && vsce package",
     "build:backend": "cd backend && go build -o ./bin/backend ./main.go",

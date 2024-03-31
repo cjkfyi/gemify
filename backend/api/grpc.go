@@ -2,7 +2,6 @@ package api
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"log"
 	"net"
@@ -15,6 +14,29 @@ import (
 
 	pb "gemify/api/gen"
 )
+
+func SetupGRPC() (*grpc.Server, net.Listener, string, error) {
+	// gRPC address
+	var port = *gRPC_port
+	var host = "127.0.0.1"
+	var addr = fmt.Sprintf(
+		"%v:%v",
+		host,
+		port,
+	)
+	// Create a listener for that address
+	lis, err := net.Listen("tcp", addr)
+	if err != nil { // Wrap error
+		return nil, nil, "", fmt.Errorf("failed to listen: %w", err)
+	}
+
+	grpcSvr := grpc.NewServer()
+	reflection.Register(grpcSvr) // Only TEST env
+	pb.RegisterGeminiAPIServer(grpcSvr, &server{})
+
+	// Return on success
+	return grpcSvr, lis, addr, nil
+}
 
 type server struct {
 	pb.UnimplementedGeminiAPIServer
@@ -61,30 +83,6 @@ func (s *server) SendMessage(ctx context.Context, in *pb.Message) (*pb.Message, 
 	}
 
 	return botReply, nil
-}
-
-func StartGRPCServer() error {
-	flag.Parse() // gRPC_port
-
-	// Create the listener for the gRPC server address constructed
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *gRPC_port))
-	if err != nil {
-		fmt.Printf("failed to listen: %v", err)
-		return err
-	}
-
-	s := grpc.NewServer()  // Basic initialization
-	reflection.Register(s) // Only for test env
-	pb.RegisterGeminiAPIServer(s, &server{})
-
-	fmt.Printf("\n🌵  gRPC live at: 127.0.0.1:%v\n\n", *gRPC_port)
-
-	// Serve gRPC or kick upwards an error
-	if err := s.Serve(lis); err != nil {
-		fmt.Printf("failed to serve: %v", err)
-		return err
-	} // goofy
-	return nil
 }
 
 func printResponse(resp *genai.GenerateContentResponse) string {

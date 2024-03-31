@@ -2,12 +2,12 @@
   "name": "gemify",
   "displayName": "Gemify",
   "description": "Yet another coding assistant 🌬️",
-  "version": "0.4.2",
+  "version": "0.5.1",
   "engines": {
     "vscode": "^1.86.2"
   },
   "author": "@cjkfyi",
-  "license": "GPL-3.0",
+  "license": "MIT",
   "keywords": [
     "ai",
     "googleai",

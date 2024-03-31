@@ -12,13 +12,15 @@ import (
 )
 
 var (
-	prox_port = flag.Int("prox_port", 8080, "Proxy server port")
+	prox_port = flag.Int("prox_port", 8000, "Proxy server port")
 	gRPC_port = flag.Int("grpc_port", 50051, "gRPC server port")
 	store     *Store
 	client    *genai.Client
 )
 
 func init() { // $PWD/.env
+	flag.Parse()
+
 	err := godotenv.Load()
 	if err != nil { // Check if file exists
 		log.Fatal("Error loading .env file")
@@ -34,7 +36,7 @@ func init() { // $PWD/.env
 	if err != nil {
 		log.Fatal("Error initializing data store: ", err)
 	}
-	store = ds
+	store = ds // vvv breaks
 	// defer store.Close()
 
 	ctx := context.Background()

@@ -8,21 +8,71 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/gorilla/websocket"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
 	pb "gemify/api/gen"
 )
 
-func StartHTTPProxy() error {
-	flag.Parse() // prox_port
-	r := chi.NewRouter()
-	r.Post("/api/gemini", GeminiHandler)
-	fmt.Printf("\n🌵  Proxy live at: 127.0.0.1:%v\n", *prox_port)
-	return http.ListenAndServe(fmt.Sprintf(":%v", *prox_port), r)
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
 }
 
-func GeminiHandler(w http.ResponseWriter, r *http.Request) {
+func SetupProxy() (*http.Server, string, error) {
+	// Proxy address
+	var port = *prox_port
+	var host = "127.0.0.1"
+	var addr = fmt.Sprintf(
+		"%v:%v",
+		host,
+		port,
+	)
+	// Chi router instance
+	r := chi.NewRouter()
+	// Chi proxy routes
+	r.Get("/ws", websocketHandler)
+	r.Post("/api/gemini", geminiHandler)
+
+	// Construct the server
+	proxySvr := http.Server{
+		Addr:    addr,
+		Handler: r,
+	}
+
+	// Return on success
+	return &proxySvr, addr, nil
+}
+
+func websocketHandler(w http.ResponseWriter, r *http.Request) {
+
+	ws, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		fmt.Println("Error during WebSocket upgrade:", err) // Log the error
+		return
+	}
+	defer ws.Close()
+
+	// Simple echo logic for testing
+	for {
+		messageType, message, err := ws.ReadMessage()
+		if err != nil {
+			fmt.Println("Error reading message:", err)
+			break
+		}
+
+		fmt.Printf("Received: %s\n", message)
+
+		err = ws.WriteMessage(messageType, message)
+		if err != nil {
+			fmt.Println("Error sending message:", err)
+			break
+		}
+	}
+}
+
+func geminiHandler(w http.ResponseWriter, r *http.Request) {
 	flag.Parse() // gRPC_port
 
 	// Establish gRPC conn
