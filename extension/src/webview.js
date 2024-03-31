@@ -1,14 +1,6 @@
 // eslint-disable-next-line no-undef
 const vscode = acquireVsCodeApi();
 
-// Start to debunk a possibility:
-if ("WebSocket" in window) {
-    console.log("WebSocket support: ✅");
-} else {
-    console.error("WebSocket support: ❌");
-}
-
-
 // eslint-disable-next-line no-unused-vars
 function switchToConvoView() {
     document.getElementById('homeView').style.display = 'none';
