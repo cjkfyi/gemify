@@ -1,8 +1,10 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
+import store from './store';
 import {
-    sendGeminiReq
+    newConvo,
+    sendGemifyMsg
 } from './comms';
 
 function activate(context) {
@@ -21,20 +23,31 @@ function activate(context) {
                 enableScripts: true,
                 retainContextWhenHidden: true,
             }
-        )
+        );
 
-        loadWebviewResources(context, gemify)
+        loadWebviewResources(context, gemify);
 
-        // C2 - (Command and Control) 
         gemify.webview.onDidReceiveMessage(msg => {
             switch (msg.command) {
-                case 'execGeminiMsg':
-                    sendGeminiReq(msg.message)
+                case 'execNewConvo':
+                    newConvo()
                         .then(res => {
+                            const convoId = res.data.convoID;
+                            store.getState().setActiveConvoId(convoId)
+                        })
+                        .catch(err => {
+                            console.error(err)
+                        })
+                    break;
+                case 'execNewMsg':
+                    const id = store.getState().activeConvoId
+                    sendGemifyMsg(msg.message, id)
+                        .then(res => {
+                            console.log(res)
                             gemify.webview.postMessage({
-                                command: 'displayGeminiRes',
+                                command: 'returnNewMsg',
                                 data: {
-                                    message: res
+                                    message: res.content
                                 },
                                 status: 'success'
                             });
@@ -43,6 +56,9 @@ function activate(context) {
                             console.error(err)
                         })
                     break;
+                    case 'execReturnHome':
+                        store.getState().setActiveConvoId(null)
+                        break;
             }
         });
     });

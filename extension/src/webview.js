@@ -1,48 +1,57 @@
 // eslint-disable-next-line no-undef
 const vscode = acquireVsCodeApi();
 
-// eslint-disable-next-line no-unused-vars
-function switchToConvoView() {
-    document.getElementById('homeView').style.display = 'none';
-    document.getElementById('convoView').style.display = 'flex';
-}
-
-// eslint-disable-next-line no-unused-vars
-function switchToHomeView() {
-    document.getElementById('convoView').style.display = 'none';
-    document.getElementById('homeView').style.display = 'flex';
-}
-
+// Wait for DOM, before attempting anything element-wise
 document.addEventListener('DOMContentLoaded', function () {
 
     const sendButton = document.getElementById('sendBtn');
     const msgInput = document.getElementById('msgInput');
 
     sendButton.addEventListener('click', function () {
-        // Grasp the user's message
         const userMsg = msgInput.value;
-
-        // Clear input field
         msgInput.value = '';
 
         // Display the grasped message
         displayMessage(userMsg, 'user')
 
         vscode.postMessage({
-            command: 'execGeminiMsg',
-            message: userMsg
+            command: 'execNewMsg',
+            message:  userMsg, 
         });
     });
 });
 
+// Listen for new messages, act upon them
 window.addEventListener('message', e => {
     const msg = e.data;
-    switch (msg.command) {
-        case 'displayGeminiRes':
+    switch (msg.command) {            
+        case 'returnNewMsg':
             displayResponse(msg.data.message, 'bot');
             break;
     }
 });
+
+// eslint-disable-next-line no-unused-vars
+function switchToConvoView() {
+    vscode.postMessage({
+        command: 'execNewConvo',
+        message: ''
+    });
+
+    document.getElementById('homeView').style.display = 'none';
+    document.getElementById('convoView').style.display = 'flex';
+}
+
+// eslint-disable-next-line no-unused-vars
+function switchToHomeView() {
+    vscode.postMessage({
+        command: 'execReturnHome',
+        message: ''
+    });
+
+    document.getElementById('convoView').style.display = 'none';
+    document.getElementById('homeView').style.display = 'flex';
+}
 
 function displayMessage(text, sender) {
     const convoArea = document.getElementById('convoArea');
