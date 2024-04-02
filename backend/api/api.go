@@ -14,11 +14,11 @@ import (
 var (
 	prox_port = flag.Int("prox_port", 8000, "Proxy server port")
 	gRPC_port = flag.Int("grpc_port", 50051, "gRPC server port")
-	store     *Store
-	client    *genai.Client
+	gemini    *genai.Client
+	chat      *Chat
 )
 
-func init() { // $PWD/.env
+func init() {
 	flag.Parse()
 
 	err := godotenv.Load()
@@ -31,17 +31,15 @@ func init() { // $PWD/.env
 		log.Fatal("API_KEY not found in environment")
 	}
 
-	// Initialize the datastore
-	ds, err := InitDataStore("data")
+	chatStore, err := InitDataStores()
 	if err != nil {
-		log.Fatal("Error initializing data store: ", err)
+		log.Fatal(err)
 	}
-	store = ds // vvv breaks
-	// defer store.Close()
+	chat = chatStore
 
 	ctx := context.Background()
-	client, err = genai.NewClient(ctx, option.WithAPIKey(API_KEY))
-	if err != nil { // Check if there's any kickback
+	gemini, err = genai.NewClient(ctx, option.WithAPIKey(API_KEY))
+	if err != nil {
 		log.Fatal(err)
 	}
 }

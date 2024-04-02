@@ -1,9 +1,7 @@
 package api
 
 import (
-	"context"
 	"fmt"
-	"log"
 	"net"
 	"strings"
 
@@ -14,6 +12,10 @@ import (
 
 	pb "gemify/api/gen"
 )
+
+type server struct {
+	pb.UnimplementedGemifyAPIServer
+}
 
 func SetupGRPC() (*grpc.Server, net.Listener, string, error) {
 	// gRPC address
@@ -32,57 +34,43 @@ func SetupGRPC() (*grpc.Server, net.Listener, string, error) {
 
 	grpcSvr := grpc.NewServer()
 	reflection.Register(grpcSvr) // Only TEST env
-	pb.RegisterGeminiAPIServer(grpcSvr, &server{})
+	pb.RegisterGemifyAPIServer(grpcSvr, &server{})
 
 	// Return on success
 	return grpcSvr, lis, addr, nil
 }
 
-type server struct {
-	pb.UnimplementedGeminiAPIServer
-}
-
-func (s *server) SendMessage(ctx context.Context, in *pb.Message) (*pb.Message, error) {
-
+func (s *server) SendMessage(
+	input *pb.Message,
+	stream pb.GemifyAPI_SendMessageServer,
+) error {
 	// Model initialization
-	gen := client.GenerativeModel("gemini-pro")
+	gen := gemini.GenerativeModel("gemini-pro")
 	gen.SetMaxOutputTokens(10000) // Tmp flow
 
-	// Bursts of output
-	var chunks []string
-
 	cs := gen.StartChat()
-	// Initialize the Chat Session
-	iter := cs.SendMessageStream(
-		ctx, // Send the msg
-		genai.Text(in.Content),
-	)
+	iter := cs.SendMessageStream(stream.Context(), genai.Text(input.Content))
+
 	for {
 		resp, err := iter.Next()
 		if err == iterator.Done {
-			break
+			break // End of GenAI response stream
 		}
 		if err != nil {
-			log.Fatal(err)
-		} // Gather up all of the chunks outputted
-		chunks = append(chunks, printResponse(resp))
+			return err // Handle errors appropriately
+		}
+
+		botReply := &pb.Message{
+			// Or modify how you extract content
+			Content: printResponse(resp),
+			IsUser:  false,
+		}
+
+		if err := stream.Send(botReply); err != nil {
+			return err // Error sending to the client
+		}
 	}
-
-	// Prettify the chunks into a str
-	reply := fmt.Sprint(strings.Join(chunks, " "))
-
-	// Construct the msg
-	botReply := &pb.Message{
-		Content: reply,
-		IsUser:  false,
-	}
-
-	err := store.SaveConversation(in.Content, []byte(reply))
-	if err != nil {
-		log.Println("Error saving conversation:", err)
-	}
-
-	return botReply, nil
+	return nil
 }
 
 func printResponse(resp *genai.GenerateContentResponse) string {

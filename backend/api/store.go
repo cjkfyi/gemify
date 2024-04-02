@@ -1,31 +1,119 @@
 package api
 
 import (
+	"bytes"
+	"fmt"
+	"io"
+	"sort"
+
+	"github.com/goccy/go-json"
+	"github.com/icza/bitio"
 	"go.mills.io/bitcask/v2"
 )
 
-type Store struct {
-	db       bitcask.DB
-	dataPath string
+type Chat struct {
+	history bitcask.DB
+	list    bitcask.DB
 }
 
-func InitDataStore(dataPath string) (*Store, error) {
-	db, err := bitcask.Open(dataPath)
+func InitDataStores() (*Chat, error) {
+	historyDB, err := bitcask.Open("data/history")
+	if err != nil {
+		return nil, err
+	}
+	listDB, err := bitcask.Open("data/list")
+	if err != nil {
+		return nil, err
+	}
+	return &Chat{
+		history: historyDB,
+		list:    listDB,
+	}, nil
+}
+
+func (c *Chat) GracefulClosure() error {
+
+	// TODO: Fix hacky solution
+	err1 := c.history.Close()
+	err2 := c.list.Close()
+
+	// Check if either closure resulted in an error
+	if err1 != nil || err2 != nil {
+		// Combine errors if necessary, or return one of them
+		return fmt.Errorf("errors during closure: %v, %v", err1, err2)
+	}
+	return nil
+}
+
+//
+
+// Storage
+func (c *Chat) UpdateConvoHistory(convoID string, convoData []byte) error {
+	return c.list.Put([]byte(convoID), convoData)
+}
+
+func (c *Chat) SaveNewConvo(convoID string, data ConvoListData) error {
+	metadataBytes, err := json.Marshal(data)
+	if err != nil {
+		return fmt.Errorf("error serializing conversation data: %v", err)
+	}
+
+	var compressedBuffer bytes.Buffer
+	compressedWriter := bitio.NewWriter(&compressedBuffer)
+	_, err = compressedWriter.Write(metadataBytes)
+	if err != nil {
+		return fmt.Errorf("error compressing data: %v", err)
+	}
+	err = compressedWriter.Close()
+	if err != nil {
+		return fmt.Errorf("error closing compressed writer: %v", err)
+	}
+
+	// Store compressed data in Bitcask
+	return c.list.Put([]byte(convoID), compressedBuffer.Bytes())
+}
+
+//
+
+// Retrievals
+func (c *Chat) GetConvoHistory(convoID string) ([]byte, error) {
+	return c.history.Get([]byte(convoID))
+}
+
+func (c *Chat) GetConvoList() ([]ConvoListData, error) {
+	var listArr []ConvoListData // For each key we will...
+	err := c.list.ForEach(func(key bitcask.Key) error {
+		compressedBytes, err := c.list.Get(key)
+		if err != nil {
+			return fmt.Errorf("err compressing data: %v", err)
+		}
+		reader := bitio.NewReader(bytes.NewReader(compressedBytes))
+		decompressedBytes, err := io.ReadAll(reader)
+		if err != nil {
+			return fmt.Errorf("err decompressing data: %v", err)
+		}
+		// Process metadata
+		var listItem ConvoListData
+		err = json.Unmarshal(decompressedBytes, &listItem)
+		if err != nil {
+			return fmt.Errorf("err parsing metadata for key %s: %v", key, err)
+		}
+		// Add to the list of conversations
+		listArr = append(listArr, listItem)
+		return nil
+	})
+
 	if err != nil {
 		return nil, err
 	}
 
-	return &Store{db: db, dataPath: dataPath}, nil
+	sort.Slice(listArr, func(i, j int) bool {
+		return listArr[i].LastModified.After(listArr[j].LastModified) // Newest first
+	})
+
+	return listArr, nil
 }
 
-func (s *Store) SaveConversation(conversationID string, conversationData []byte) error {
-	return s.db.Put([]byte(conversationID), conversationData)
-}
-
-func (s *Store) GetConversation(conversationID string) ([]byte, error) {
-	return s.db.Get([]byte(conversationID))
-}
-
-func (s *Store) Close() error {
-	return s.db.Close()
-}
+// func (c *Chat) GetShortConvoList() (map[string]byte, error) {
+// 	return nil, nil
+// }
