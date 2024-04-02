@@ -3,14 +3,13 @@ package gemify;
 
 option go_package = "gemify/api";
 
-// Reps a single msg within a convo
 message Message {
-  string content = 1;
-  bool is_user = 2;
+  string convoId = 1;
+  string content = 2;
+  bool is_user = 3;
 }
 
-// GEMIFY* - BRAND
-service GeminiAPI {
-  // Sends a new msg and gets updated convo
-  rpc SendMessage(Message) returns (Message) {}
+service GemifyAPI {
+  // Sends a new msg and gets the reply
+  rpc SendMessage(Message) returns (stream Message) {}
 }
