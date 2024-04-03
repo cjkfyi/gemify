@@ -54,14 +54,13 @@ func (s *server) SendMessage(
 	for {
 		resp, err := iter.Next()
 		if err == iterator.Done {
-			break // End of GenAI response stream
+			break
 		}
 		if err != nil {
-			return err // Handle errors appropriately
+			return err
 		}
 
 		botReply := &pb.Message{
-			// Or modify how you extract content
 			Content: printResponse(resp),
 			IsUser:  false,
 		}
@@ -70,6 +69,14 @@ func (s *server) SendMessage(
 			return err // Error sending to the client
 		}
 	}
+	// Additional EOF chunk
+	botReply := &pb.Message{
+		Content: "EOF",
+		IsUser:  false,
+	}
+	if err := stream.Send(botReply); err != nil {
+		return err
+	} // Solid
 	return nil
 }
 
