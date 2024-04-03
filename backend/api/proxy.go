@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"time"
 
@@ -24,17 +23,6 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-//
-
-// Temporary conversation state management
-// type Conversation struct {
-// 	gRPCStream pb.GemifyAPI_SendMessageServer
-// }
-
-// var conversations sync.Map
-
-//
-
 func genConvoID() string {
 
 	// TODO: implement google's UUID pkg
@@ -47,11 +35,8 @@ func genConvoID() string {
 	return hex.EncodeToString(randomBytes)
 }
 
-//
-
 func newConvo(w http.ResponseWriter, r *http.Request) {
 
-	// tmp solution
 	convoID := genConvoID()
 
 	data := ConvoListData{
@@ -62,7 +47,6 @@ func newConvo(w http.ResponseWriter, r *http.Request) {
 
 	err := chat.SaveNewConvo(convoID, data)
 	if err != nil {
-		// Handle error ... you might return an error response here
 		http.Error(w, "Error saving new conversation", http.StatusInternalServerError)
 		return
 	}
@@ -94,31 +78,10 @@ func newMessage(w http.ResponseWriter, r *http.Request) {
 	}
 	defer ws.Close()
 
-	// Simple echo logic for testing
-	// for {
-	// 	key, val, err := ws.ReadMessage()
-	// 	if err != nil {
-	// 		fmt.Println("Error reading message:", err)
-	// 		break
-	// 	}
-
-	// 	fmt.Printf("Received: %s\n", val)
-
-	// 	err = ws.WriteMessage(key, val)
-	// 	if err != nil {
-	// 		fmt.Println("Error sending message:", err)
-	// 		break
-	// 	}
-	// }
-
 	_, val, err := ws.ReadMessage()
 	if err != nil {
 		fmt.Println("Error reading message:", err)
 	}
-
-	fmt.Printf("Received: %s\n", string(val))
-
-	//
 
 	// Establish gRPC conn
 	conn, err := grpc.Dial(
@@ -128,54 +91,37 @@ func newMessage(w http.ResponseWriter, r *http.Request) {
 		),
 	)
 	if err != nil {
-		// connection error
-		fmt.Println(err)
+		return
 	}
-	defer conn.Close()
-
 	// Initiate gRPC Streaming
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel() // For cleanup later
+	defer cancel()
 
 	client := pb.NewGemifyAPIClient(conn)
-	stream, err := client.SendMessage(ctx,
-		&pb.Message{
-			Content: string(val),
-			IsUser:  true,
-		},
-	)
+	stream, err := client.SendMessage(ctx, &pb.Message{
+		Content: string(val),
+		IsUser:  true,
+	})
 	if err != nil {
 		return
-		// ... handle gRPC setup error ...
 	}
-	// defer stream.CloseSend()
-	// Close the stream from the client-side once done
 
-	// Translation Loop
 	for {
 		grpcResponse, err := stream.Recv()
-		if err == io.EOF { // Stream ended
+		if err == io.EOF {
 			break
 		}
 		if err != nil {
-			// Handle gRPC stream errors
-			log.Println("Error receiving gRPC response:", err)
-			// You may want to send an error message over the WebSocket here
 			break
 		}
 
-		// Translate grpcResponse into WebSocket-friendly format
 		jsonData, err := json.Marshal(grpcResponse)
 		if err != nil {
-			return
-			// ... handle JSON encoding errors ...
+			break
 		}
 
-		// Send over WebSocket
 		if err := ws.WriteMessage(websocket.TextMessage, jsonData); err != nil {
-			// ... handle WebSocket send errors ...
-			return
-
+			break
 		}
 	}
 }
@@ -183,7 +129,6 @@ func newMessage(w http.ResponseWriter, r *http.Request) {
 func getConvos(w http.ResponseWriter, r *http.Request) {
 	ListArr, err := chat.GetConvoList()
 	if err != nil {
-		// return an error response here
 		http.Error(w,
 			"Error retrieving conversation list",
 			http.StatusInternalServerError,
@@ -222,12 +167,6 @@ func SetupProxy() (*http.Server, string, error) {
 	r.Get("/chat/list", getConvos)
 	r.Post("/chat", newConvo)
 	r.Get("/ws/chat/{id}", newMessage)
-	// first new msg, updates the title summarized.
-
-	// r.Get("/chat/list/s", getShortConvoList)
-
-	// r.Post("/chat/{convoId}/messages", sendMessageHandler)
-	// r.Get("/ws/chat/{convoId}", wsConversationHandler)
 
 	// Construct the server
 	proxySvr := http.Server{

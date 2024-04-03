@@ -7,6 +7,7 @@ import {
     sendGemifyMsg
 } from './comms';
 
+
 function activate(context) {
 
     vscode.commands.executeCommand('gemify.openPanel');
@@ -40,25 +41,17 @@ function activate(context) {
                         })
                     break;
                 case 'execNewMsg':
-                    const id = store.getState().activeConvoId
-                    sendGemifyMsg(msg.message, id)
-                        .then(res => {
-                            console.log(res)
-                            gemify.webview.postMessage({
-                                command: 'returnNewMsg',
-                                data: {
-                                    message: res.content
-                                },
-                                status: 'success'
-                            });
-                        })
-                        .catch(err => {
-                            console.error(err)
-                        })
+                    const id = store.getState().activeConvoId;
+                    sendGemifyMsg(msg.message, id, (chunk) => {
+                        gemify.webview.postMessage({
+                            command: 'updateDisplay',
+                            data: chunk,
+                        });
+                    });
                     break;
-                    case 'execReturnHome':
-                        store.getState().setActiveConvoId(null)
-                        break;
+                case 'execReturnHome':
+                    store.getState().setActiveConvoId(null)
+                    break;
             }
         });
     });

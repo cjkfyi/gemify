@@ -1,9 +1,11 @@
 // eslint-disable-next-line no-undef
 const vscode = acquireVsCodeApi();
 
+let msgInProg = false;
+let chunkQueue = [];
+
 // Wait for DOM, before attempting anything element-wise
 document.addEventListener('DOMContentLoaded', function () {
-
     const sendButton = document.getElementById('sendBtn');
     const msgInput = document.getElementById('msgInput');
 
@@ -12,11 +14,11 @@ document.addEventListener('DOMContentLoaded', function () {
         msgInput.value = '';
 
         // Display the grasped message
-        displayMessage(userMsg, 'user')
+        displayMessage(userMsg, 'user');
 
         vscode.postMessage({
             command: 'execNewMsg',
-            message:  userMsg, 
+            message: userMsg,
         });
     });
 });
@@ -24,12 +26,79 @@ document.addEventListener('DOMContentLoaded', function () {
 // Listen for new messages, act upon them
 window.addEventListener('message', e => {
     const msg = e.data;
-    switch (msg.command) {            
-        case 'returnNewMsg':
-            displayResponse(msg.data.message, 'bot');
+
+    switch (msg.command) {
+        case 'updateDisplay':
+            chunkQueue.push(msg.data);
+
+            if (!msgInProg) {
+                msgInProg = true;
+                processChunkQueue();
+            }
             break;
     }
 });
+
+
+function displayMessage(text, sender) {
+    const convoArea = document.getElementById('convoArea');
+    const messageElement = document.createElement('div');
+    messageElement.classList.add('message');
+    messageElement.classList.add(sender);
+    messageElement.textContent = text;
+    convoArea.appendChild(messageElement);
+    convoArea.scrollTop = convoArea.scrollHeight;
+}
+
+function processChunkQueue() {
+    if (chunkQueue.length === 0) {
+        msgInProg = false;
+        return;
+    }
+
+    const area = document.getElementById('convoArea');
+    let msgEl = document.querySelector('.message.bot.streaming');
+    if (!msgEl) {
+        msgEl = document.createElement('div');
+        msgEl.classList.add('message', 'bot', 'streaming');
+        area.appendChild(msgEl);
+    }
+
+    const chunk = chunkQueue.shift();
+
+    // Check for EOF and reset flags
+    if (chunk === 'EOF') {
+        msgEl.classList.remove('streaming');
+        storedResponse = [];
+        msgInProg = false;
+        return;
+    }
+
+    let messageContent;
+    try {
+        const parsedChunk = JSON.parse(chunk);
+        messageContent = parsedChunk.message;
+    } catch (error) {
+        messageContent = chunk;
+    }
+
+    let currentIndex = 0;
+    const animationInterval = 10;
+
+    function updateMessage() {
+        if (currentIndex < messageContent.length) {
+            msgEl.textContent += messageContent[currentIndex];
+            currentIndex++;
+            setTimeout(updateMessage, animationInterval);
+        } else {
+            setTimeout(processChunkQueue, animationInterval);
+        }
+    }
+
+    updateMessage();
+
+    area.scrollTop = area.scrollHeight;
+}
 
 // eslint-disable-next-line no-unused-vars
 function switchToConvoView() {
@@ -53,22 +122,3 @@ function switchToHomeView() {
     document.getElementById('homeView').style.display = 'flex';
 }
 
-function displayMessage(text, sender) {
-    const convoArea = document.getElementById('convoArea');
-    const messageElement = document.createElement('div');
-    messageElement.classList.add('message');
-    messageElement.classList.add(sender);
-    messageElement.textContent = text;
-    convoArea.appendChild(messageElement);
-    convoArea.scrollTop = convoArea.scrollHeight;
-}
-
-function displayResponse(text, sender) {
-    const convoArea = document.getElementById('convoArea');
-    const messageElement = document.createElement('div');
-    messageElement.classList.add('message');
-    messageElement.classList.add(sender);
-    messageElement.textContent = text;
-    convoArea.appendChild(messageElement);
-    convoArea.scrollTop = convoArea.scrollHeight;
-}
