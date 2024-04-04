@@ -127,6 +127,7 @@ function loadWebviewResources(context, gemify) {
             <link rel="stylesheet" href="${reset}" />
             <link rel="stylesheet" href="${css}" />
             <script src="${js}"></script>
+            <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
             <title></title>
         </head>
         <body>

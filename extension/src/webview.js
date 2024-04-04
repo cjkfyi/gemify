@@ -4,6 +4,7 @@ const vscode = acquireVsCodeApi();
 // ℹ️: Flags for res
 let resInProg = false;
 let resChunkQueue = [];
+let test = '';
 
 // ℹ️: Communicate early
 vscode.postMessage({
@@ -37,12 +38,13 @@ window.addEventListener('message', e => {
             var arr = msg.data.conversations;
             listRecentConvos(arr);
             break;
+            
         case 'returnConvoView':
             reopenConvoView();
             break;
+
         case 'returnMsg':
             resChunkQueue.push(msg.data);
-
             if (!resInProg) {
                 resInProg = true;
                 streamGeminiRes();
@@ -72,9 +74,17 @@ function streamGeminiRes() {
     if (chunk === 'EOF') {
         resEl.classList.remove('streaming');
         resInProg = false;
-        return;
-    };
 
+        const htmlContent = marked.parse(test);
+        resEl.innerHTML = htmlContent;
+        // const htmlContent = processMD(test)
+        // resEl.innerHTML = htmlContent
+        test = ''; 
+        return;
+    } else {
+        test += chunk;  
+    }
+    
     let messageContent;
     messageContent = chunk; 
     
