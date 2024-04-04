@@ -53,8 +53,6 @@ window.addEventListener('message', e => {
 
 function streamGeminiRes() {
     
-    // console.log(resChunkQueue)
-
     if (resChunkQueue.length === 0) {
         resInProg = false;
         return;
@@ -78,13 +76,8 @@ function streamGeminiRes() {
     };
 
     let messageContent;
-    try {
-        const parsedChunk = JSON.parse(chunk);
-        messageContent = parsedChunk.message;
-    } catch (error) {
-        messageContent = chunk;
-    };
-
+    messageContent = chunk; 
+    
     let currentIndex = 0;
     const animationInterval = 10;
 

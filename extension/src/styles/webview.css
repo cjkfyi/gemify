@@ -88,6 +88,7 @@ main {
 #convoArea {
     display: flex;
     flex-direction: column;
+    white-space: pre-line; 
     overflow-y: auto;
 }
 
@@ -142,6 +143,6 @@ main {
 }
 
 .bot {
-    background-color: red;
+    background-color: #2e2e2e;
     align-self: flex-start;
 }
