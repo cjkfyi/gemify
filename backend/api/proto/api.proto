@@ -4,9 +4,7 @@ package gemify;
 option go_package = "gemify/api";
 
 message Message {
-  string convoId = 1;
   string content = 2;
-  bool is_user = 3;
 }
 
 service GemifyAPI {

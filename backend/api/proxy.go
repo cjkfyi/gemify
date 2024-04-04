@@ -39,7 +39,7 @@ func newConvo(w http.ResponseWriter, r *http.Request) {
 
 	convoID := genConvoID()
 
-	data := ConvoListData{
+	data := Convo{
 		ID:           convoID,
 		Title:        "The meaning of life",
 		LastModified: time.Now(),
@@ -100,7 +100,6 @@ func newMessage(w http.ResponseWriter, r *http.Request) {
 	client := pb.NewGemifyAPIClient(conn)
 	stream, err := client.SendMessage(ctx, &pb.Message{
 		Content: string(val),
-		IsUser:  true,
 	})
 	if err != nil {
 		return

@@ -47,12 +47,30 @@ func (c *Chat) GracefulClosure() error {
 
 //
 
-// Storage
+//
+
+// GetFullConvoList()
+// GetShortConvoList()
+// AddNewConvo()
+// AdjustConvo()
+
+// GetConvoHistory()
+// AddConvoHistory()
+// AdjustConvoHistory()
+
+//
+
+func (c *Chat) GetConvoHistory(convoID string) ([]byte, error) {
+	return c.history.Get([]byte(convoID))
+}
+
 func (c *Chat) UpdateConvoHistory(convoID string, convoData []byte) error {
 	return c.list.Put([]byte(convoID), convoData)
 }
 
-func (c *Chat) SaveNewConvo(convoID string, data ConvoListData) error {
+//
+
+func (c *Chat) SaveNewConvo(convoID string, data Convo) error {
 	metadataBytes, err := json.Marshal(data)
 	if err != nil {
 		return fmt.Errorf("error serializing conversation data: %v", err)
@@ -69,19 +87,11 @@ func (c *Chat) SaveNewConvo(convoID string, data ConvoListData) error {
 		return fmt.Errorf("error closing compressed writer: %v", err)
 	}
 
-	// Store compressed data in Bitcask
 	return c.list.Put([]byte(convoID), compressedBuffer.Bytes())
 }
 
-//
-
-// Retrievals
-func (c *Chat) GetConvoHistory(convoID string) ([]byte, error) {
-	return c.history.Get([]byte(convoID))
-}
-
-func (c *Chat) GetConvoList() ([]ConvoListData, error) {
-	var listArr []ConvoListData // For each key we will...
+func (c *Chat) GetConvoList() ([]Convo, error) {
+	var listArr []Convo // For each key we will...
 	err := c.list.ForEach(func(key bitcask.Key) error {
 		compressedBytes, err := c.list.Get(key)
 		if err != nil {
@@ -93,7 +103,7 @@ func (c *Chat) GetConvoList() ([]ConvoListData, error) {
 			return fmt.Errorf("err decompressing data: %v", err)
 		}
 		// Process metadata
-		var listItem ConvoListData
+		var listItem Convo
 		err = json.Unmarshal(decompressedBytes, &listItem)
 		if err != nil {
 			return fmt.Errorf("err parsing metadata for key %s: %v", key, err)
@@ -108,12 +118,24 @@ func (c *Chat) GetConvoList() ([]ConvoListData, error) {
 	}
 
 	sort.Slice(listArr, func(i, j int) bool {
-		return listArr[i].LastModified.After(listArr[j].LastModified) // Newest first
+		return listArr[i].LastModified.After(listArr[j].LastModified)
 	})
 
 	return listArr, nil
 }
 
-// func (c *Chat) GetShortConvoList() (map[string]byte, error) {
-// 	return nil, nil
-// }
+// Current datastore design:
+
+// 2 buckets
+//    - history
+//  	 - convoID (k)
+//  	 	- Message
+// 			- Sender
+// 			- IsUser
+//			- Stamp
+
+//    - list
+//		 - convoID (k)
+//			- ID
+//			- Title
+//			- LastModified

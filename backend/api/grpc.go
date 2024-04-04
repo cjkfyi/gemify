@@ -61,8 +61,7 @@ func (s *server) SendMessage(
 		}
 
 		botReply := &pb.Message{
-			Content: printResponse(resp),
-			IsUser:  false,
+			Content: printRes(resp),
 		}
 
 		if err := stream.Send(botReply); err != nil {
@@ -72,7 +71,6 @@ func (s *server) SendMessage(
 	// Additional EOF chunk
 	botReply := &pb.Message{
 		Content: "EOF",
-		IsUser:  false,
 	}
 	if err := stream.Send(botReply); err != nil {
 		return err
@@ -80,7 +78,7 @@ func (s *server) SendMessage(
 	return nil
 }
 
-func printResponse(resp *genai.GenerateContentResponse) string {
+func printRes(resp *genai.GenerateContentResponse) string {
 	var output []string
 	// List the different parts, construct
 	for _, cand := range resp.Candidates {
