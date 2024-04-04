@@ -41,7 +41,7 @@ func newConvo(w http.ResponseWriter, r *http.Request) {
 
 	data := ConvoListData{
 		ID:           convoID,
-		Title:        "",
+		Title:        "The meaning of life",
 		LastModified: time.Now(),
 	}
 
@@ -164,8 +164,8 @@ func SetupProxy() (*http.Server, string, error) {
 	r := chi.NewRouter()
 
 	// Chi proxy routes
-	r.Get("/chat/list", getConvos)
 	r.Post("/chat", newConvo)
+	r.Get("/chat/list", getConvos)
 	r.Get("/ws/chat/{id}", newMessage)
 
 	// Construct the server
