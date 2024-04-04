@@ -1,78 +1,81 @@
 // eslint-disable-next-line no-undef
 const vscode = acquireVsCodeApi();
 
-let msgInProg = false;
-let chunkQueue = [];
+// ℹ️: Flags for res
+let resInProg = false;
+let resChunkQueue = [];
 
-// Wait for DOM, before attempting anything element-wise
+// ℹ️: Communicate early
+vscode.postMessage({
+    command: 'execConvoList',
+});
+
+// ℹ️: Wait for DOM, before attempting anything element-wise
 document.addEventListener('DOMContentLoaded', function () {
-    const sendButton = document.getElementById('sendBtn');
+    const sendMsgBtn = document.getElementById('sendBtn');
     const msgInput = document.getElementById('msgInput');
 
-    sendButton.addEventListener('click', function () {
-        const userMsg = msgInput.value;
+    sendMsgBtn.addEventListener('click', function () {
+        const msg = msgInput.value;
         msgInput.value = '';
 
-        // Display the grasped message
-        displayMessage(userMsg, 'user');
+        renderUsrMsg(msg);
 
         vscode.postMessage({
             command: 'execNewMsg',
-            message: userMsg,
+            message: msg,
         });
     });
 });
 
-// Listen for new messages, act upon them
+// ℹ️: Listen for new messages, act upon
 window.addEventListener('message', e => {
     const msg = e.data;
 
     switch (msg.command) {
-        case 'updateDisplay':
-            chunkQueue.push(msg.data);
+        case 'returnConvoList':
+            var arr = msg.data.conversations;
+            listRecentConvos(arr);
+            break;
+        case 'returnConvoView':
+            reopenConvoView();
+            break;
+        case 'returnMsg':
+            resChunkQueue.push(msg.data);
 
-            if (!msgInProg) {
-                msgInProg = true;
-                processChunkQueue();
+            if (!resInProg) {
+                resInProg = true;
+                streamGeminiRes();
             }
             break;
     }
 });
 
+function streamGeminiRes() {
+    
+    // console.log(resChunkQueue)
 
-function displayMessage(text, sender) {
-    const convoArea = document.getElementById('convoArea');
-    const messageElement = document.createElement('div');
-    messageElement.classList.add('message');
-    messageElement.classList.add(sender);
-    messageElement.textContent = text;
-    convoArea.appendChild(messageElement);
-    convoArea.scrollTop = convoArea.scrollHeight;
-}
-
-function processChunkQueue() {
-    if (chunkQueue.length === 0) {
-        msgInProg = false;
+    if (resChunkQueue.length === 0) {
+        resInProg = false;
         return;
-    }
+    };
 
     const area = document.getElementById('convoArea');
-    let msgEl = document.querySelector('.message.bot.streaming');
-    if (!msgEl) {
-        msgEl = document.createElement('div');
-        msgEl.classList.add('message', 'bot', 'streaming');
-        area.appendChild(msgEl);
-    }
+    let resEl = document.querySelector('.message.bot.streaming');
+    if (!resEl) {
+        resEl = document.createElement('div');
+        resEl.classList.add('message', 'bot', 'streaming');
+        area.appendChild(resEl);
+    };
 
-    const chunk = chunkQueue.shift();
+    const chunk = resChunkQueue.shift();
 
     // Check for EOF and reset flags
     if (chunk === 'EOF') {
-        msgEl.classList.remove('streaming');
-        storedResponse = [];
-        msgInProg = false;
+        resEl.classList.remove('streaming');
+        resInProg = false;
         return;
-    }
+    };
 
     let messageContent;
     try {
@@ -80,45 +83,91 @@ function processChunkQueue() {
         messageContent = parsedChunk.message;
     } catch (error) {
         messageContent = chunk;
-    }
+    };
 
     let currentIndex = 0;
     const animationInterval = 10;
 
-    function updateMessage() {
+    function streamResponse() {
         if (currentIndex < messageContent.length) {
-            msgEl.textContent += messageContent[currentIndex];
+            resEl.textContent += messageContent[currentIndex];
             currentIndex++;
-            setTimeout(updateMessage, animationInterval);
+            setTimeout(streamResponse, animationInterval);
         } else {
-            setTimeout(processChunkQueue, animationInterval);
-        }
-    }
+            setTimeout(streamGeminiRes, animationInterval);
+        };
+    };
 
-    updateMessage();
+    streamResponse();
 
     area.scrollTop = area.scrollHeight;
 }
 
-// eslint-disable-next-line no-unused-vars
-function switchToConvoView() {
+//
+
+function renderUsrMsg(text) {
+    const convoArea = document.getElementById('convoArea');
+    const messageElement = document.createElement('div');
+    messageElement.classList.add('message');
+    messageElement.classList.add('user');
+    messageElement.textContent = text;
+    convoArea.appendChild(messageElement);
+    convoArea.scrollTop = convoArea.scrollHeight;
+};
+
+//
+
+function listRecentConvos(list) {
+    const convoListEl = document.getElementById('convo-list');
+
+    if (list.length === 0) {
+        // ℹ️: Problematic alongside of the `show more...` el
+        convoListEl.innerHTML = '<li>Create your first conversation?</li>';
+        return;
+    }
+
+    const displayCount = 4;
+    const displayConversations = list.slice(0, displayCount);
+
+    displayConversations.forEach((convo, index) => {
+        const listItem = document.createElement('li');
+        listItem.textContent = convo.title;
+        listItem.id = `convo-item-${index}`;
+        convoListEl.appendChild(listItem);
+
+        listItem.addEventListener('click', () => {
+            vscode.postMessage({
+                command: 'execConvoView',
+                data: convo.id,
+            });
+        });
+    });
+};
+
+//
+
+function newProjectAction() {
+    // ℹ️: Will grow complex 
+
     vscode.postMessage({
         command: 'execNewConvo',
-        message: ''
     });
-
     document.getElementById('homeView').style.display = 'none';
+    // ℹ️: Hide all views, but the specific one needed rendered
     document.getElementById('convoView').style.display = 'flex';
-}
+};
 
-// eslint-disable-next-line no-unused-vars
-function switchToHomeView() {
+function returnHome() {
     vscode.postMessage({
         command: 'execReturnHome',
-        message: ''
     });
-
     document.getElementById('convoView').style.display = 'none';
+    // ℹ️: Hide all views, but the specific one needed rendered
     document.getElementById('homeView').style.display = 'flex';
-}
+};
 
+function reopenConvoView() {
+    document.getElementById('homeView').style.display = 'none';
+    // ℹ️: Hide all views, but the specific one needed rendered
+    document.getElementById('convoView').style.display = 'flex';
+};

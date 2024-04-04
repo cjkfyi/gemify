@@ -42,6 +42,11 @@ main {
     font-weight: 600;
 }
 
+#convo-list li:hover {
+    color: rgb(151, 151, 151); /* Example hover style */
+    cursor: pointer;
+}
+
 #newConvoBtn {
     width: calc(100%);
     height: 50px;

@@ -3,7 +3,8 @@ import * as path from 'path';
 import * as fs from 'fs';
 import store from './store';
 import {
-    newConvo,
+    sendNewConvo,
+    getConvoList,
     sendGemifyMsg
 } from './comms';
 
@@ -30,8 +31,32 @@ function activate(context) {
 
         gemify.webview.onDidReceiveMessage(msg => {
             switch (msg.command) {
+                case 'execConvoList':
+                    getConvoList()
+                        .then(res => {
+                            gemify.webview.postMessage({
+                                command: 'returnConvoList',
+                                data: res.data,
+                            });
+                        })
+                        .catch(err => {
+                            console.error(err)
+                        })
+                    break;
+                case 'execConvoView':
+                    const convoID = msg.data
+
+                    store.getState().setActiveConvoId(convoID)
+                    gemify.webview.postMessage({
+                        command: 'returnConvoView',
+                        data: convoID,
+                    });
+                    break;
+                case 'execHomeView':
+                    store.getState().setActiveConvoId(null)
+                    break;
                 case 'execNewConvo':
-                    newConvo()
+                    sendNewConvo()
                         .then(res => {
                             const convoId = res.data.convoID;
                             store.getState().setActiveConvoId(convoId)
@@ -44,7 +69,7 @@ function activate(context) {
                     const id = store.getState().activeConvoId;
                     sendGemifyMsg(msg.message, id, (chunk) => {
                         gemify.webview.postMessage({
-                            command: 'updateDisplay',
+                            command: 'returnMsg',
                             data: chunk,
                         });
                     });

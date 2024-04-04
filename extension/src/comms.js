@@ -1,7 +1,7 @@
-const WebSocket = require('ws'); 
+const WebSocket = require('ws');
 
 async function sendGemifyMsg(msg, id, onChunkReceived) {
-    
+
     const url = 'ws://localhost:8000/ws/chat/' + id;
     const ws = new WebSocket(url);
 
@@ -15,10 +15,10 @@ async function sendGemifyMsg(msg, id, onChunkReceived) {
     ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
         onChunkReceived(data.content);
-    };    
-}
+    };
+};
 
-async function newConvo() {
+async function sendNewConvo() {
     const res = await fetch('http://localhost:8000/chat', {
         method: 'POST',
         headers: {
@@ -28,10 +28,30 @@ async function newConvo() {
 
     if (!res.ok) {
         throw new Error(`HTTP Error: ${res.status}`);
-    }
+    };
 
     const data = await res.json();
     return data;
-}
+};
 
-export { sendGemifyMsg, newConvo }
+async function getConvoList() {
+    const res = await fetch('http://localhost:8000/chat/list', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+    });
+
+    if (!res.ok) {
+        throw new Error(`HTTP Error: ${res.status}`);
+    };
+
+    const data = await res.json();
+    return data;
+};
+
+export {
+    sendGemifyMsg,
+    sendNewConvo,
+    getConvoList,
+};

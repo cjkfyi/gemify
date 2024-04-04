@@ -1,6 +1,6 @@
-<!--          -->
-<!-- homeView -->
-<!--          -->
+<!--           -->
+<!-- Home View -->
+<!--           -->
 
 <div id="homeView">
     <header id="homeHeader">
@@ -14,21 +14,26 @@
         </p>
     </header>
 
-    <main></main>
+    <main>
+        <ul id="convo-list"></ul>
+        <!-- TODO: fix ⬇️ -->
+        </br>
+        <p>Show more...</p>
+     </main>
     
     <footer>
         <button 
             id="newConvoBtn"
-            onclick="switchToConvoView()" 
+            onclick="newProjectAction()" 
         >
             New Project
         </button>
     </footer>
 </div>
 
-<!--           -->
-<!-- convoView -->
-<!--           -->
+<!--            -->
+<!-- Convo View -->
+<!--            -->
 
 <div 
     id="convoView" 
@@ -37,7 +42,7 @@
     <header id="convoHeader">
         <button 
             id="backButton" 
-            onclick="switchToHomeView()"
+            onclick="returnHome()"
         >
             <-
         </button>
