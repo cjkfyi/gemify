@@ -123,6 +123,7 @@ function renderUsrMsg(text) {
 function listRecentConvos(list) {
     const convoListEl = document.getElementById('convo-list');
 
+    // Breaks if doesn't exist
     if (list.length === 0) {
         // ℹ️: Problematic alongside of the `show more...` el
         convoListEl.innerHTML = '<li>Create your first conversation?</li>';

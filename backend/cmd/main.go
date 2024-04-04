@@ -100,6 +100,13 @@ func main() {
 		// Shutdown gRPC server
 		grpcSvr.GracefulStop()
 
+		// Close out of datastores
+		if err := api.GracefulClosure(); err != nil {
+			shutdownErrors = append(shutdownErrors, err)
+		} else {
+			fmt.Println("Closed out of datastores?!")
+		}
+
 		// Return a more appropriate error
 		if len(shutdownErrors) > 0 {
 			return fmt.Errorf("multiple shutdown errors: %v", shutdownErrors)

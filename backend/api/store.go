@@ -11,6 +11,25 @@ import (
 	"go.mills.io/bitcask/v2"
 )
 
+// Current datastore design:
+
+// 2 buckets
+
+//   - history
+//  	 - convoID (k)
+//			- ID
+//  	 	- Message
+// 			- IsUser
+//			- LastModified
+//			- FirstCreated
+
+//   - list
+//		 - convoID (k)
+//			- ID
+//			- Title
+//			- FirstCreated
+//			- LastModified
+
 type Chat struct {
 	history bitcask.DB
 	list    bitcask.DB
@@ -31,11 +50,11 @@ func InitDataStores() (*Chat, error) {
 	}, nil
 }
 
-func (c *Chat) GracefulClosure() error {
+func GracefulClosure() error {
 
 	// TODO: Fix hacky solution
-	err1 := c.history.Close()
-	err2 := c.list.Close()
+	err1 := chat.history.Close()
+	err2 := chat.list.Close()
 
 	// Check if either closure resulted in an error
 	if err1 != nil || err2 != nil {
@@ -49,11 +68,6 @@ func (c *Chat) GracefulClosure() error {
 
 //
 
-// GetFullConvoList()
-// GetShortConvoList()
-// AddNewConvo()
-// AdjustConvo()
-
 // GetConvoHistory()
 // AddConvoHistory()
 // AdjustConvoHistory()
@@ -64,9 +78,20 @@ func (c *Chat) GetConvoHistory(convoID string) ([]byte, error) {
 	return c.history.Get([]byte(convoID))
 }
 
-func (c *Chat) UpdateConvoHistory(convoID string, convoData []byte) error {
-	return c.list.Put([]byte(convoID), convoData)
+func (c *Chat) UpdateConvoHistory(convoID string, data ConvoHistory) error {
+	return c.list.Put([]byte(convoID), nil)
 }
+
+//
+
+//
+
+//
+
+// GetFullConvoList()
+// GetShortConvoList()
+// AddNewConvo()
+// AdjustConvo()
 
 //
 
@@ -123,19 +148,3 @@ func (c *Chat) GetConvoList() ([]Convo, error) {
 
 	return listArr, nil
 }
-
-// Current datastore design:
-
-// 2 buckets
-//    - history
-//  	 - convoID (k)
-//  	 	- Message
-// 			- Sender
-// 			- IsUser
-//			- Stamp
-
-//    - list
-//		 - convoID (k)
-//			- ID
-//			- Title
-//			- LastModified
