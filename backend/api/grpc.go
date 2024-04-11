@@ -11,45 +11,80 @@ import (
 	"google.golang.org/grpc/reflection"
 
 	pb "gemify/api/gen"
+	"gemify/store"
 )
 
 type server struct {
-	pb.UnimplementedGemifyAPIServer
+	pb.UnimplementedGemifyServer
 }
 
-func SetupGRPC() (*grpc.Server, net.Listener, string, error) {
-	// gRPC address
-	var port = *gRPC_port
-	var host = "127.0.0.1"
+func getRole(isUser bool) string {
+	if isUser {
+		return "user"
+	} else {
+		return "model"
+	}
+}
+
+func SetupGRPC() (
+	*grpc.Server, net.Listener, string, error,
+) {
+
 	var addr = fmt.Sprintf(
 		"%v:%v",
-		host,
-		port,
+		*host_addr,
+		*gRPC_port,
 	)
-	// Create a listener for that address
+
 	lis, err := net.Listen("tcp", addr)
-	if err != nil { // Wrap error
-		return nil, nil, "", fmt.Errorf("failed to listen: %w", err)
+	if err != nil {
+		return nil, nil, "",
+			fmt.Errorf("failed to listen: %w", err)
 	}
 
 	grpcSvr := grpc.NewServer()
-	reflection.Register(grpcSvr) // Only TEST env
-	pb.RegisterGemifyAPIServer(grpcSvr, &server{})
+	if *isTest {
+		reflection.Register(grpcSvr)
+	}
+	pb.RegisterGemifyServer(grpcSvr, &server{})
 
-	// Return on success
 	return grpcSvr, lis, addr, nil
 }
 
 func (s *server) SendMessage(
-	input *pb.Message,
-	stream pb.GemifyAPI_SendMessageServer,
+	i *pb.Message,
+	stream pb.Gemify_SendMessageServer,
 ) error {
-	// Model initialization
-	gen := gemini.GenerativeModel("gemini-pro")
-	gen.SetMaxOutputTokens(10000) // Tmp flow
 
-	cs := gen.StartChat()
-	iter := cs.SendMessageStream(stream.Context(), genai.Text(input.Content))
+	var convo []*genai.Content
+
+	hist, err := store.ListMessages(
+		i.ChatID, i.ProjID,
+	)
+	if err != nil {
+		return err
+	}
+
+	model := gemini.GenerativeModel(
+		"gemini-1.5-pro-latest",
+	)
+	cs := model.StartChat()
+
+	for _, el := range hist {
+		ex := &genai.Content{
+			Parts: []genai.Part{
+				genai.Text(el.Message),
+			},
+			Role: getRole(el.IsUser),
+		}
+		convo = append(convo, ex)
+	}
+	cs.History = convo
+
+	iter := cs.SendMessageStream(
+		stream.Context(),
+		genai.Text(i.Content),
+	)
 
 	for {
 		resp, err := iter.Next()
@@ -65,28 +100,30 @@ func (s *server) SendMessage(
 		}
 
 		if err := stream.Send(botReply); err != nil {
-			return err // Error sending to the client
+			return err
 		}
 	}
-	// Additional EOF chunk
+
 	botReply := &pb.Message{
 		Content: "EOF",
 	}
+
 	if err := stream.Send(botReply); err != nil {
 		return err
 	} // Solid
 	return nil
 }
 
-func printRes(resp *genai.GenerateContentResponse) string {
+func printRes(
+	res *genai.GenerateContentResponse,
+) string {
 	var output []string
-	// List the different parts, construct
-	for _, cand := range resp.Candidates {
+	for _, cand := range res.Candidates {
 		if cand.Content != nil {
 			for _, part := range cand.Content.Parts {
 				output = append(output, fmt.Sprint(part))
 			}
 		}
-	} // Return a single string, tmp
+	}
 	return strings.Join(output, " ")
 }

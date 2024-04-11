@@ -5,10 +5,11 @@ package gemify;
 option go_package = "gemify/api";
 
 message Message {
-  string content = 2;
+  string content = 1;
+  string chatID = 2;
+  string projID = 3;
 }
 
-service GemifyAPI {
-  // Sends a new msg and gets the reply
+service Gemify {
   rpc SendMessage(Message) returns (stream Message) {}
 }

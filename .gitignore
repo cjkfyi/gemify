@@ -13,8 +13,6 @@ extension/dist/*
 backend/api/gen/*
 !backend/api/gen/.gitkeep
 
-backend/data/*
-!backend/data/.gitkeep
+backend/.data/*
+!backend/.data/.gitkeep
 
-backend/keys/*
-!backend/keys/.gitkeep
