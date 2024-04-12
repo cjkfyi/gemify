@@ -7,7 +7,6 @@ import (
 	"io"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/websocket"
@@ -21,36 +20,33 @@ import (
 
 func SetupProxy() (*http.Server, string, error) {
 
-	// Our wise tree
 	var addr = fmt.Sprintf(
 		"%v:%v",
 		*host_addr,
 		*prox_port,
 	)
-	//
+
 	r := chi.NewRouter()
-	////
-	////
+
 	r.Get("/projs", ListProjectsHandler)
 	r.Post("/proj", CreateProjectHandler)
 	r.Get("/proj/{projID}", GetProjectHandler)
 	r.Put("/proj/{projID}", UpdateProjectHandler)
 	r.Delete("/proj/{projID}", DeleteProjectHandler)
-	////
+
 	r.Post("/proj/{projID}/chat", CreateChatHandler)
 	r.Get("/proj/{projID}/chats", ListChatsHandler)
 	r.Get("/proj/{projID}/chat/{chatID}", GetChatHandler)
 	r.Put("/proj/{projID}/chat/{chatID}", UpdateChatHandler)
 	r.Delete("/proj/{projID}/chat/{chatID}", DeleteChatHandler)
-	////
+
 	r.Get("/proj/{projID}/chat/{chatID}/msg", NewMessageHandler)
 	r.Post("/proj/{projID}/chat/{chatID}/msg", CreateMessageHandler)
 	r.Get("/proj/{projID}/chat/{chatID}/history", ListMessagesHandler)
 	r.Get("/proj/{projID}/chat/{chatID}/msg/{msgID}", GetMessageHandler)
 	r.Put("/proj/{projID}/chat/{chatID}/msg/{msgID}", UpdateMessageHandler)
 	r.Delete("/proj/{projID}/chat/{chatID}/msg/{msgID}", DeleteMessageHandler)
-	////
-	////
+
 	proxySvr := http.Server{
 		Addr:    addr,
 		Handler: r,
@@ -108,6 +104,7 @@ func CreateProjectHandler(w http.ResponseWriter, r *http.Request) {
 			Status:  "error",
 		}
 		redFlag(w, http.StatusBadRequest, res)
+		return
 	}
 
 	proj, err := store.CreateProject(&project)
@@ -125,6 +122,7 @@ func CreateProjectHandler(w http.ResponseWriter, r *http.Request) {
 				Status:  "error",
 			}
 			redFlag(w, http.StatusBadRequest, res)
+			return
 		case "name cannot exceed 160 chars",
 			"desc cannot exceed 260 chars":
 			data := map[string]interface{}{
@@ -137,6 +135,7 @@ func CreateProjectHandler(w http.ResponseWriter, r *http.Request) {
 				Status:  "error",
 			}
 			redFlag(w, http.StatusBadRequest, res)
+			return
 		case "failed to open meta ds",
 			"failed to mk the proj dir",
 			"failed to marshal proj",
@@ -151,6 +150,7 @@ func CreateProjectHandler(w http.ResponseWriter, r *http.Request) {
 				Status:  "error",
 			}
 			redFlag(w, http.StatusInternalServerError, res)
+			return
 		}
 	} else {
 		data := map[string]interface{}{
@@ -172,6 +172,18 @@ func GetProjectHandler(w http.ResponseWriter, r *http.Request) {
 	project, err := store.GetProject(projID)
 	if err != nil {
 		switch err.Error() {
+		case "proj returned nil":
+			data := map[string]interface{}{
+				"code":    models.ErrorCodeWrongProjID,
+				"message": "param is invalid",
+			}
+			res := models.Response{
+				Command: "execGetProject",
+				Data:    data,
+				Status:  "error",
+			}
+			redFlag(w, http.StatusBadRequest, res)
+			return
 		case "projID param is required":
 			data := map[string]interface{}{
 				"code":    models.ErrorCodeMissingInput,
@@ -183,6 +195,7 @@ func GetProjectHandler(w http.ResponseWriter, r *http.Request) {
 				Status:  "error",
 			}
 			redFlag(w, http.StatusBadRequest, res)
+			return
 		case "failed to open meta ds",
 			"failed to find proj with key",
 			"failed to unmarshal proj":
@@ -196,6 +209,7 @@ func GetProjectHandler(w http.ResponseWriter, r *http.Request) {
 				Status:  "error",
 			}
 			redFlag(w, http.StatusInternalServerError, res)
+			return
 		}
 	} else {
 		data := map[string]interface{}{
@@ -228,6 +242,7 @@ func ListProjectsHandler(w http.ResponseWriter, r *http.Request) {
 				Status:  "error",
 			}
 			redFlag(w, http.StatusInternalServerError, res)
+			return
 		}
 	} else {
 		data := map[string]interface{}{
@@ -260,11 +275,24 @@ func UpdateProjectHandler(w http.ResponseWriter, r *http.Request) {
 			Status:  "error",
 		}
 		redFlag(w, http.StatusBadRequest, res)
+		return
 	}
 
 	proj, err := store.UpdateProject(projID, updatedData)
 	if err != nil {
 		switch err.Error() {
+		case "proj returned nil":
+			data := map[string]interface{}{
+				"code":    models.ErrorCodeWrongProjID,
+				"message": "param is invalid",
+			}
+			res := models.Response{
+				Command: "execUpdateProject",
+				Data:    data,
+				Status:  "error",
+			}
+			redFlag(w, http.StatusBadRequest, res)
+			return
 		case "projID param is required":
 			data := map[string]interface{}{
 				"code":    models.ErrorCodeMissingInput,
@@ -276,6 +304,7 @@ func UpdateProjectHandler(w http.ResponseWriter, r *http.Request) {
 				Status:  "error",
 			}
 			redFlag(w, http.StatusBadRequest, res)
+			return
 		case "name cannot exceed 160 chars",
 			"desc cannot exceed 260 chars":
 			data := map[string]interface{}{
@@ -288,6 +317,7 @@ func UpdateProjectHandler(w http.ResponseWriter, r *http.Request) {
 				Status:  "error",
 			}
 			redFlag(w, http.StatusBadRequest, res)
+			return
 		case "failed to open meta ds",
 			"failed to marshal updated proj",
 			"failed to scan meta ds for key",
@@ -303,6 +333,7 @@ func UpdateProjectHandler(w http.ResponseWriter, r *http.Request) {
 				Status:  "error",
 			}
 			redFlag(w, http.StatusInternalServerError, res)
+			return
 		}
 	}
 
@@ -335,17 +366,19 @@ func DeleteProjectHandler(w http.ResponseWriter, r *http.Request) {
 				Status:  "error",
 			}
 			redFlag(w, http.StatusBadRequest, res)
+			return
 		case "failed to find proj with projID":
 			data := map[string]interface{}{
-				"code":    models.ErrorCodeWrongKey,
-				"message": err.Error(),
+				"code":    models.ErrorCodeWrongProjID,
+				"message": "param is invalid",
 			}
 			res := models.Response{
 				Command: "execDeleteProject",
 				Data:    data,
 				Status:  "error",
 			}
-			redFlag(w, http.StatusNotFound, res)
+			redFlag(w, http.StatusBadRequest, res)
+			return
 		case "failed to open meta ds",
 			"failed to delete proj entry":
 			data := map[string]interface{}{
@@ -358,8 +391,8 @@ func DeleteProjectHandler(w http.ResponseWriter, r *http.Request) {
 				Status:  "error",
 			}
 			redFlag(w, http.StatusInternalServerError, res)
+			return
 		}
-		return
 	} else {
 		data := map[string]interface{}{
 			"deleted": true,
@@ -394,6 +427,7 @@ func CreateChatHandler(w http.ResponseWriter, r *http.Request) {
 			Status:  "error",
 		}
 		redFlag(w, http.StatusBadRequest, res)
+		return
 	}
 
 	i.ProjID = projID
@@ -412,6 +446,7 @@ func CreateChatHandler(w http.ResponseWriter, r *http.Request) {
 				Status:  "error",
 			}
 			redFlag(w, http.StatusBadRequest, res)
+			return
 		case "name param is required",
 			"desc param is required":
 			data := map[string]interface{}{
@@ -424,6 +459,7 @@ func CreateChatHandler(w http.ResponseWriter, r *http.Request) {
 				Status:  "error",
 			}
 			redFlag(w, http.StatusBadRequest, res)
+			return
 		case "name cannot exceed 160 chars",
 			"desc cannot exceed 260 chars":
 			data := map[string]interface{}{
@@ -436,6 +472,21 @@ func CreateChatHandler(w http.ResponseWriter, r *http.Request) {
 				Status:  "error",
 			}
 			redFlag(w, http.StatusBadRequest, res)
+			return
+			//
+		case "proj returned nil":
+			data := map[string]interface{}{
+				"code":    models.ErrorCodeWrongProjID,
+				"message": "param is invalid",
+			}
+			res := models.Response{
+				Command: "execCreateChat",
+				Data:    data,
+				Status:  "error",
+			}
+			redFlag(w, http.StatusBadRequest, res)
+			return
+			//
 		case "failed to store proj in meta ds",
 			"failed to store new chat entity",
 			"failed to delete old chat entity",
@@ -456,6 +507,7 @@ func CreateChatHandler(w http.ResponseWriter, r *http.Request) {
 				Status:  "error",
 			}
 			redFlag(w, http.StatusInternalServerError, res)
+			return
 		}
 	} else {
 		data := map[string]interface{}{
@@ -478,6 +530,31 @@ func GetChatHandler(w http.ResponseWriter, r *http.Request) {
 	chat, err := store.GetChat(projID, chatID)
 	if err != nil {
 		switch err.Error() {
+		case "failed to find chat with chatID":
+			data := map[string]interface{}{
+				"code":    models.ErrorCodeWrongChatID,
+				"message": "param is invalid",
+			}
+			res := models.Response{
+				Command: "execListChats",
+				Data:    data,
+				Status:  "error",
+			}
+			redFlag(w, http.StatusBadRequest, res)
+			return
+		case "proj returned nil",
+			"failed to find proj with projID":
+			data := map[string]interface{}{
+				"code":    models.ErrorCodeWrongProjID,
+				"message": "param is invalid",
+			}
+			res := models.Response{
+				Command: "execListChats",
+				Data:    data,
+				Status:  "error",
+			}
+			redFlag(w, http.StatusBadRequest, res)
+			return
 		case "projID param is required":
 			data := map[string]interface{}{
 				"code":    models.ErrorCodeMissingInput,
@@ -489,9 +566,8 @@ func GetChatHandler(w http.ResponseWriter, r *http.Request) {
 				Status:  "error",
 			}
 			redFlag(w, http.StatusBadRequest, res)
+			return
 		case "failed to open meta ds",
-			"failed to find proj with projID",
-			"failed to find chat with chatID",
 			"failed to unmarshal proj":
 			data := map[string]interface{}{
 				"code":    models.ErrorCodeInternal,
@@ -503,6 +579,7 @@ func GetChatHandler(w http.ResponseWriter, r *http.Request) {
 				Status:  "error",
 			}
 			redFlag(w, http.StatusInternalServerError, res)
+			return
 		}
 	} else {
 		data := map[string]interface{}{
@@ -524,6 +601,18 @@ func ListChatsHandler(w http.ResponseWriter, r *http.Request) {
 	chats, err := store.ListChats(projID)
 	if err != nil {
 		switch err.Error() {
+		case "proj returned nil":
+			data := map[string]interface{}{
+				"code":    models.ErrorCodeWrongProjID,
+				"message": "param is invalid",
+			}
+			res := models.Response{
+				Command: "execListChats",
+				Data:    data,
+				Status:  "error",
+			}
+			redFlag(w, http.StatusBadRequest, res)
+			return
 		case "projID param is required":
 			data := map[string]interface{}{
 				"code":    models.ErrorCodeMissingInput,
@@ -535,6 +624,7 @@ func ListChatsHandler(w http.ResponseWriter, r *http.Request) {
 				Status:  "error",
 			}
 			redFlag(w, http.StatusBadRequest, res)
+			return
 		case "failed to open meta ds",
 			"failed to find proj with key",
 			"failed to unmarshal proj":
@@ -548,6 +638,7 @@ func ListChatsHandler(w http.ResponseWriter, r *http.Request) {
 				Status:  "error",
 			}
 			redFlag(w, http.StatusInternalServerError, res)
+			return
 		}
 	} else {
 		data := map[string]interface{}{
@@ -581,11 +672,36 @@ func UpdateChatHandler(w http.ResponseWriter, r *http.Request) {
 			Status:  "error",
 		}
 		redFlag(w, http.StatusBadRequest, res)
+		return
 	}
 
 	updated, err := store.UpdateChat(projID, chatID, i)
 	if err != nil {
 		switch err.Error() {
+		case "chat not found with chatID":
+			data := map[string]interface{}{
+				"code":    models.ErrorCodeWrongChatID,
+				"message": "param is invalid",
+			}
+			res := models.Response{
+				Command: "execUpdateChat",
+				Data:    data,
+				Status:  "error",
+			}
+			redFlag(w, http.StatusBadRequest, res)
+			return
+		case "proj returned nil":
+			data := map[string]interface{}{
+				"code":    models.ErrorCodeWrongProjID,
+				"message": "param is invalid",
+			}
+			res := models.Response{
+				Command: "execUpdateChat",
+				Data:    data,
+				Status:  "error",
+			}
+			redFlag(w, http.StatusBadRequest, res)
+			return
 		case "projID param is required",
 			"chatID param is required":
 			data := map[string]interface{}{
@@ -598,6 +714,7 @@ func UpdateChatHandler(w http.ResponseWriter, r *http.Request) {
 				Status:  "error",
 			}
 			redFlag(w, http.StatusBadRequest, res)
+			return
 		case "name cannot exceed 160 chars",
 			"desc cannot exceed 260 chars":
 			data := map[string]interface{}{
@@ -610,8 +727,8 @@ func UpdateChatHandler(w http.ResponseWriter, r *http.Request) {
 				Status:  "error",
 			}
 			redFlag(w, http.StatusBadRequest, res)
+			return
 		case "failed to open meta ds",
-			"chat not found with chatID",
 			"failed to marshal proj",
 			"failed to find proj with projID",
 			"failed to delete old chat entity",
@@ -628,6 +745,7 @@ func UpdateChatHandler(w http.ResponseWriter, r *http.Request) {
 				Status:  "error",
 			}
 			redFlag(w, http.StatusInternalServerError, res)
+			return
 		}
 	} else {
 		data := map[string]interface{}{
@@ -662,10 +780,34 @@ func DeleteChatHandler(w http.ResponseWriter, r *http.Request) {
 				Status:  "error",
 			}
 			redFlag(w, http.StatusBadRequest, res)
+			return
+		case "failed to find chat with chatID":
+			data := map[string]interface{}{
+				"code":    models.ErrorCodeWrongChatID,
+				"message": "param is invalid",
+			}
+			res := models.Response{
+				Command: "execDeleteChat",
+				Data:    data,
+				Status:  "error",
+			}
+			redFlag(w, http.StatusBadRequest, res)
+			return
+		case "proj returned nil",
+			"failed to find proj with projID":
+			data := map[string]interface{}{
+				"code":    models.ErrorCodeWrongProjID,
+				"message": "param is invalid",
+			}
+			res := models.Response{
+				Command: "execDeleteChat",
+				Data:    data,
+				Status:  "error",
+			}
+			redFlag(w, http.StatusBadRequest, res)
+			return
 		case "failed to open meta ds",
-			"failed to find proj with projID",
 			"failed to unmarshal proj",
-			"failed to find chat with chatID",
 			"failed to marshal proj",
 			"failed to store new proj":
 			data := map[string]interface{}{
@@ -678,6 +820,7 @@ func DeleteChatHandler(w http.ResponseWriter, r *http.Request) {
 				Status:  "error",
 			}
 			redFlag(w, http.StatusInternalServerError, res)
+			return
 		}
 	} else {
 		data := map[string]interface{}{
@@ -697,12 +840,12 @@ func DeleteChatHandler(w http.ResponseWriter, r *http.Request) {
 
 func CreateMessageHandler(w http.ResponseWriter, r *http.Request) {
 
-	var i *models.Message
+	var i models.Message
 
 	chatID := chi.URLParam(r, "chatID")
 	projID := chi.URLParam(r, "projID")
 
-	err := json.NewDecoder(r.Body).Decode(i)
+	err := json.NewDecoder(r.Body).Decode(&i)
 	if err != nil {
 		data := map[string]interface{}{
 			"code":    models.ErrorCodeDecode,
@@ -714,9 +857,10 @@ func CreateMessageHandler(w http.ResponseWriter, r *http.Request) {
 			Status:  "error",
 		}
 		redFlag(w, http.StatusBadRequest, res)
+		return
 	}
 
-	val, err := store.CreateMessage(chatID, projID, i)
+	val, err := store.CreateMessage(chatID, projID, i.Message, i.IsUser)
 	if err != nil {
 		switch err.Error() {
 		case "failed to open chat ds",
@@ -732,6 +876,7 @@ func CreateMessageHandler(w http.ResponseWriter, r *http.Request) {
 				Status:  "error",
 			}
 			redFlag(w, http.StatusInternalServerError, res)
+			return
 		}
 	} else {
 		data := map[string]interface{}{
@@ -768,6 +913,7 @@ func GetMessageHandler(w http.ResponseWriter, r *http.Request) {
 				Status:  "error",
 			}
 			redFlag(w, http.StatusInternalServerError, res)
+			return
 		}
 	} else {
 		data := map[string]interface{}{
@@ -803,6 +949,7 @@ func ListMessagesHandler(w http.ResponseWriter, r *http.Request) {
 				Status:  "error",
 			}
 			redFlag(w, http.StatusInternalServerError, res)
+			return
 		}
 	} else {
 		data := map[string]interface{}{
@@ -837,6 +984,7 @@ func UpdateMessageHandler(w http.ResponseWriter, r *http.Request) {
 			Status:  "error",
 		}
 		redFlag(w, http.StatusBadRequest, res)
+		return
 	}
 
 	msg, err := store.UpdateMessage(projID, chatID, msgID, i)
@@ -856,6 +1004,7 @@ func UpdateMessageHandler(w http.ResponseWriter, r *http.Request) {
 				Status:  "error",
 			}
 			redFlag(w, http.StatusInternalServerError, res)
+			return
 		}
 	} else {
 		data := map[string]interface{}{
@@ -893,6 +1042,7 @@ func DeleteMessageHandler(w http.ResponseWriter, r *http.Request) {
 				Status:  "error",
 			}
 			redFlag(w, http.StatusInternalServerError, res)
+			return
 		}
 	} else {
 		data := map[string]interface{}{
@@ -950,18 +1100,7 @@ func NewMessageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userStamp := int(time.Now().UnixNano())
-
-	usrMsg := &models.Message{
-		ID:           store.GenID(),
-		ChatID:       chatID,
-		ProjID:       projID,
-		IsUser:       true,
-		Message:      string(msg),
-		LastModified: userStamp,
-		FirstCreated: userStamp,
-	}
-	_, err = store.CreateMessage(chatID, projID, usrMsg)
+	_, err = store.CreateMessage(chatID, projID, string(msg), true)
 	if err != nil {
 		dataRes := map[string]interface{}{
 			"code": models.ErrorCodeInternal,
@@ -1085,19 +1224,9 @@ func NewMessageHandler(w http.ResponseWriter, r *http.Request) {
 		buffer.WriteString(grpcResponse.Content)
 	}
 
-	response := buffer.String()
+	res := buffer.String()
 
-	gemStamp := int(time.Now().UnixNano())
-	gemMsg := &models.Message{
-		ID:           store.GenID(),
-		ChatID:       chatID,
-		ProjID:       projID,
-		IsUser:       false,
-		Message:      response,
-		LastModified: gemStamp,
-		FirstCreated: gemStamp,
-	}
-	_, err = store.CreateMessage(chatID, projID, gemMsg)
+	_, err = store.CreateMessage(chatID, projID, res, false)
 	if err != nil {
 		dataRes := map[string]interface{}{
 			"code": models.ErrorCodeInternal,

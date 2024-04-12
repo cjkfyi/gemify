@@ -1,7 +1,7 @@
 {
   "name": "gemify",
   "description": "Yet another coding assistant 🌬️",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "author": "@cjkfyi",
   "license": "MIT",
   "scripts": {

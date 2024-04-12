@@ -42,5 +42,7 @@ const (
 	ErrorCodeWrongKey     = "WRONG_KEY_ERR"
 	ErrorCodeMissingInput = "MISSING_INPUT_ERR"
 	ErrorCodeInvalidInput = "INVALID_INPUT_ERR"
+	ErrorCodeWrongProjID  = "WRONG_PROJ_ID"
+	ErrorCodeWrongChatID  = "WRONG_CHAT_ID"
 	ErrorCodeDecode       = "DECODING_ERR"
 )

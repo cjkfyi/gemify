@@ -1,10 +1,12 @@
 # `gemify`
 
-> *__not another coding assistant__?* 
+> *__not another coding assistant__?*
 
 ## 🤔
 
-I'm prototyping a multi-turn conversational extension for VSCode. After being fed-up with having to Copy and Paste my code, back-and-forth a million times, for a more current understanding every turn... `gemify` was suddenly born.
+I'm prototyping a multi-turn conversational extension for VSCode. After being fed-up with having to Copy and Paste my code, back-and-forth a million times, for a more current understanding every turn... `gemify` was suddenly born. 
+
+This is in early development, but steadily shaping. As of v1.0.1, the backend has been crafted well-enough, attention and effort will be oriented around getting the frontend all caught-up.
 
 ## 🧰
 

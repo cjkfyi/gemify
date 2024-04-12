@@ -28,6 +28,8 @@ func openMeta() (
 	return &meta, nil
 }
 
+//
+
 func CreateProject(
 	i *models.Project,
 ) (
@@ -80,6 +82,8 @@ func CreateProject(
 	return i, nil
 }
 
+//
+
 func GetProject(
 	projID string,
 ) (
@@ -87,7 +91,7 @@ func GetProject(
 	error,
 ) {
 
-	var project models.Project
+	var proj *models.Project
 
 	if projID == "" {
 		return nil, errors.New("projID param is required")
@@ -111,7 +115,7 @@ func GetProject(
 				return errors.New("failed to find proj with projID")
 			}
 
-			err = json.Unmarshal(data, &project)
+			err = json.Unmarshal(data, &proj)
 			if err != nil {
 				return errors.New("failed to unmarshal proj")
 			}
@@ -124,9 +128,16 @@ func GetProject(
 	if err != nil {
 		return nil, err
 	} else {
-		return &project, nil
+
+		if proj == nil {
+			return nil, errors.New("proj returned nil")
+		}
+
+		return proj, nil
 	}
 }
+
+//
 
 func ListProjects() (
 	[]models.Project,
@@ -165,9 +176,14 @@ func ListProjects() (
 	if err != nil {
 		return nil, err
 	} else {
+		if projArr == nil {
+			projArr = []models.Project{}
+		}
 		return projArr, nil
 	}
 }
+
+//
 
 func UpdateProject(
 	projID string,
@@ -244,8 +260,14 @@ func UpdateProject(
 		return nil, errors.New("failed to store new proj entry")
 	}
 
-	return project, nil
+	if project == nil {
+		return nil, errors.New("proj was nil")
+	} else {
+		return project, nil
+	}
 }
+
+//
 
 func DeleteProject(
 	projID string,
@@ -289,10 +311,13 @@ func DeleteProject(
 }
 
 //
+
+//
 // Chat
 
 func openChat(
-	projID, chatID string,
+	projID,
+	chatID string,
 ) (
 	*bitcask.DB,
 	error,
@@ -312,6 +337,8 @@ func openChat(
 
 	return &chat, nil
 }
+
+//
 
 func addChat(
 	project *models.Project,
@@ -362,6 +389,8 @@ func addChat(
 	return nil
 }
 
+//
+
 func CreateChat(
 	i *models.Chat,
 ) (
@@ -404,8 +433,11 @@ func CreateChat(
 	return i, nil
 }
 
+//
+
 func GetChat(
-	projID, chatID string,
+	projID,
+	chatID string,
 ) (
 	*models.Chat,
 	error,
@@ -424,6 +456,8 @@ func GetChat(
 
 	return nil, errors.New("failed to find chat with chatID")
 }
+
+//
 
 func ListChats(
 	projID string,
@@ -444,11 +478,18 @@ func ListChats(
 		project.Chats...,
 	)
 
+	if chatArr == nil {
+		chatArr = []models.Chat{}
+	}
+
 	return chatArr, nil
 }
 
+//
+
 func UpdateChat(
-	projID, chatID string,
+	projID,
+	chatID string,
 	i models.Chat,
 ) (
 	*models.Chat,
@@ -543,9 +584,14 @@ func UpdateChat(
 	return chatRes, nil
 }
 
+//
+
 func DeleteChat(
-	projID, chatID string,
+	projID,
+	chatID string,
 ) error {
+
+	var project *models.Project
 
 	if projID == "" {
 		return errors.New("projID param is required")
@@ -566,8 +612,6 @@ func DeleteChat(
 
 		keyID, _, err := extractKey(metaKey)
 		if err == nil && keyID == projID {
-
-			var project models.Project
 
 			data, err := (*meta).Get(key)
 			if err != nil {
@@ -605,6 +649,9 @@ func DeleteChat(
 		}
 		return nil
 	})
+	if project == nil {
+		return errors.New("proj returned nil")
+	}
 	if err != nil {
 		return err
 	} else {
@@ -615,60 +662,59 @@ func DeleteChat(
 //
 // Message
 
-func AddMessage(
-	chatID, projID string,
-	i *models.Message,
-) (
-	*models.Message,
-	error,
-) {
-	chat, err := openChat(projID, chatID)
-	if err != nil {
-		return nil, errors.New("failed to open chat ds")
-	}
-	defer (*chat).Close()
-
-	//
-
-	//
-	//
-	return nil, nil
-}
-
 func CreateMessage(
-	chatID, projID string,
-	i *models.Message,
+	chatID,
+	projID,
+	msg string,
+	isUser bool,
 ) (
 	*models.Message,
 	error,
 ) {
 
-	chat, err := openChat(projID, chatID)
-	if err != nil {
-		return nil, errors.New("failed to open chat ds")
+	if msg == "" {
+		return nil, errors.New("message input is required")
 	}
-	defer (*chat).Close()
 
 	msgID := GenID()
+	stamp := int(time.Now().UnixNano())
 
-	messaged := i
+	new := &models.Message{
+		ID:           msgID,
+		ChatID:       chatID,
+		ProjID:       projID,
+		IsUser:       isUser,
+		Message:      string(msg),
+		LastModified: stamp,
+		FirstCreated: stamp,
+	}
 
-	msgJSON, err := json.Marshal(messaged)
+	chat, err := openChat(projID, chatID)
+	if err != nil {
+		return nil, errors.New("failed to open chat ds")
+	}
+	defer (*chat).Close()
+
+	val, err := json.Marshal(new)
 	if err != nil {
 		return nil, errors.New("failed to marshal msg")
 	}
 
 	// messageKey := fmt.Sprintf("%s:%d:%s", chatID, stamp, msgID)
-	err = (*chat).Put([]byte(msgID), msgJSON)
+	err = (*chat).Put([]byte(msgID), val)
 	if err != nil {
 		return nil, errors.New("failed to store msg")
 	}
 
-	return messaged, nil
+	return new, nil
 }
 
+//
+
 func GetMessage(
-	projID, chatID, msgID string,
+	projID,
+	chatID,
+	msgID string,
 ) (
 	*models.Message,
 	error,
@@ -708,8 +754,11 @@ func GetMessage(
 	}
 }
 
+//
+
 func ListMessages(
-	chatID, projID string,
+	chatID,
+	projID string,
 ) (
 	[]models.Message,
 	error,
@@ -751,8 +800,12 @@ func ListMessages(
 	}
 }
 
+//
+
 func UpdateMessage(
-	projID, chatID, msgID string,
+	projID,
+	chatID,
+	msgID string,
 	i models.Message,
 ) (
 	*models.Message,
@@ -812,8 +865,12 @@ func UpdateMessage(
 	}
 }
 
+//
+
 func DeleteMessage(
-	projID, chatID, msgID string,
+	projID,
+	chatID,
+	msgID string,
 ) error {
 
 	var msg models.Message
