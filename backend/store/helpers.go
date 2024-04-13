@@ -4,8 +4,11 @@ import (
 	"bytes"
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
+	"os"
+	"path"
 	"strings"
 
 	"github.com/icza/bitio"
@@ -13,6 +16,45 @@ import (
 
 // Dumping grounds
 const dataPath = ".data"
+
+//
+
+// Used to validate a specific projID
+func isProj(projID string) error {
+	path := path.Join(dataPath, projID)
+	_, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		return errors.New(
+			"projID is invalid",
+		)
+	} else {
+		return nil
+	}
+}
+
+// Used to validate a pair of proj & chat IDs
+func isChat(projID, chatID string) error {
+	projPath := path.Join(dataPath, projID)
+	chatPath := path.Join(projPath, chatID)
+	_, err := os.Stat(projPath)
+	if os.IsNotExist(err) {
+		return errors.New(
+			"projID is invalid",
+		)
+	} else {
+		_, err := os.Stat(chatPath)
+		if os.IsNotExist(err) {
+			return errors.New(
+				"chatID is invalid",
+			)
+		} else {
+			return nil
+		}
+	}
+}
+
+// as long as we have strict creations,
+// these helpers should make good sense
 
 //
 

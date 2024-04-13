@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -95,7 +96,7 @@ func CreateProjectHandler(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&project)
 	if err != nil {
 		data := map[string]interface{}{
-			"code":    models.ErrorCodeDecode,
+			"code":    models.ERR_Decode,
 			"message": "failed to decode proj input",
 		}
 		res := models.Response{
@@ -113,7 +114,7 @@ func CreateProjectHandler(w http.ResponseWriter, r *http.Request) {
 		case "name param is required",
 			"desc param is required":
 			data := map[string]interface{}{
-				"code":    models.ErrorCodeMissingInput,
+				"code":    models.ERR_MissingInput,
 				"message": err.Error(),
 			}
 			res := models.Response{
@@ -126,7 +127,7 @@ func CreateProjectHandler(w http.ResponseWriter, r *http.Request) {
 		case "name cannot exceed 160 chars",
 			"desc cannot exceed 260 chars":
 			data := map[string]interface{}{
-				"code":    models.ErrorCodeInvalidInput,
+				"code":    models.ERR_InvalidInput,
 				"message": err.Error(),
 			}
 			res := models.Response{
@@ -141,7 +142,7 @@ func CreateProjectHandler(w http.ResponseWriter, r *http.Request) {
 			"failed to marshal proj",
 			"failed to store proj in meta ds":
 			data := map[string]interface{}{
-				"code":    models.ErrorCodeInternal,
+				"code":    models.ERR_Internal,
 				"message": err.Error(),
 			}
 			res := models.Response{
@@ -167,14 +168,32 @@ func CreateProjectHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetProjectHandler(w http.ResponseWriter, r *http.Request) {
 
+	// TODO:
+
 	projID := chi.URLParam(r, "projID")
+	if projID == "" {
+		err := errors.New("projID param is required")
+		data := map[string]interface{}{
+			"code":    models.ERR_InvalidChatID,
+			"message": err.Error(),
+		}
+		res := models.Response{
+			Command: "execGetProject",
+			Data:    data,
+			Status:  "error",
+		}
+		redFlag(w, http.StatusBadRequest, res)
+		return
+	}
+
+	// finish...
 
 	project, err := store.GetProject(projID)
 	if err != nil {
 		switch err.Error() {
 		case "proj returned nil":
 			data := map[string]interface{}{
-				"code":    models.ErrorCodeWrongProjID,
+				"code":    models.ERR_InvalidProjID,
 				"message": "param is invalid",
 			}
 			res := models.Response{
@@ -186,7 +205,7 @@ func GetProjectHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		case "projID param is required":
 			data := map[string]interface{}{
-				"code":    models.ErrorCodeMissingInput,
+				"code":    models.ERR_MissingInput,
 				"message": err.Error(),
 			}
 			res := models.Response{
@@ -200,7 +219,7 @@ func GetProjectHandler(w http.ResponseWriter, r *http.Request) {
 			"failed to find proj with key",
 			"failed to unmarshal proj":
 			data := map[string]interface{}{
-				"code":    models.ErrorCodeInternal,
+				"code":    models.ERR_Internal,
 				"message": err.Error(),
 			}
 			res := models.Response{
@@ -215,12 +234,12 @@ func GetProjectHandler(w http.ResponseWriter, r *http.Request) {
 		data := map[string]interface{}{
 			"project": project,
 		}
-		errorResponse := models.Response{
+		res := models.Response{
 			Command: "execGetProject",
 			Data:    data,
 			Status:  "success",
 		}
-		greenLight(w, http.StatusOK, errorResponse)
+		greenLight(w, http.StatusOK, res)
 	}
 }
 
@@ -233,7 +252,7 @@ func ListProjectsHandler(w http.ResponseWriter, r *http.Request) {
 			"failed to get pair in meta ds",
 			"failed to unmarshal proj":
 			data := map[string]interface{}{
-				"code":    models.ErrorCodeInternal,
+				"code":    models.ERR_Internal,
 				"message": err.Error(),
 			}
 			res := models.Response{
@@ -248,12 +267,12 @@ func ListProjectsHandler(w http.ResponseWriter, r *http.Request) {
 		data := map[string]interface{}{
 			"projects": projects,
 		}
-		errorResponse := models.Response{
+		res := models.Response{
 			Command: "execListProjects",
 			Data:    data,
 			Status:  "success",
 		}
-		greenLight(w, http.StatusOK, errorResponse)
+		greenLight(w, http.StatusOK, res)
 	}
 }
 
@@ -266,7 +285,7 @@ func UpdateProjectHandler(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&updatedData)
 	if err != nil {
 		errData := map[string]interface{}{
-			"code":    models.ErrorCodeDecode,
+			"code":    models.ERR_Decode,
 			"message": "failed to decode updated proj input",
 		}
 		res := models.Response{
@@ -283,7 +302,7 @@ func UpdateProjectHandler(w http.ResponseWriter, r *http.Request) {
 		switch err.Error() {
 		case "proj returned nil":
 			data := map[string]interface{}{
-				"code":    models.ErrorCodeWrongProjID,
+				"code":    models.ERR_InvalidProjID,
 				"message": "param is invalid",
 			}
 			res := models.Response{
@@ -295,7 +314,7 @@ func UpdateProjectHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		case "projID param is required":
 			data := map[string]interface{}{
-				"code":    models.ErrorCodeMissingInput,
+				"code":    models.ERR_MissingInput,
 				"message": err.Error(),
 			}
 			res := models.Response{
@@ -308,7 +327,7 @@ func UpdateProjectHandler(w http.ResponseWriter, r *http.Request) {
 		case "name cannot exceed 160 chars",
 			"desc cannot exceed 260 chars":
 			data := map[string]interface{}{
-				"code":    models.ErrorCodeInvalidInput,
+				"code":    models.ERR_InvalidInput,
 				"message": err.Error(),
 			}
 			res := models.Response{
@@ -324,7 +343,7 @@ func UpdateProjectHandler(w http.ResponseWriter, r *http.Request) {
 			"failed to delete old proj entry",
 			"failed to store new proj entry":
 			data := map[string]interface{}{
-				"code":    models.ErrorCodeInternal,
+				"code":    models.ERR_Internal,
 				"message": err.Error(),
 			}
 			res := models.Response{
@@ -357,7 +376,7 @@ func DeleteProjectHandler(w http.ResponseWriter, r *http.Request) {
 		switch err.Error() {
 		case "projID param is required":
 			data := map[string]interface{}{
-				"code":    models.ErrorCodeMissingInput,
+				"code":    models.ERR_MissingInput,
 				"message": err.Error(),
 			}
 			res := models.Response{
@@ -369,7 +388,7 @@ func DeleteProjectHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		case "failed to find proj with projID":
 			data := map[string]interface{}{
-				"code":    models.ErrorCodeWrongProjID,
+				"code":    models.ERR_InvalidProjID,
 				"message": "param is invalid",
 			}
 			res := models.Response{
@@ -382,7 +401,7 @@ func DeleteProjectHandler(w http.ResponseWriter, r *http.Request) {
 		case "failed to open meta ds",
 			"failed to delete proj entry":
 			data := map[string]interface{}{
-				"code":    models.ErrorCodeInternal,
+				"code":    models.ERR_Internal,
 				"message": err.Error(),
 			}
 			res := models.Response{
@@ -397,12 +416,12 @@ func DeleteProjectHandler(w http.ResponseWriter, r *http.Request) {
 		data := map[string]interface{}{
 			"deleted": true,
 		}
-		errorResponse := models.Response{
+		res := models.Response{
 			Command: "execDeleteProject",
 			Data:    data,
 			Status:  "success",
 		}
-		greenLight(w, http.StatusOK, errorResponse)
+		greenLight(w, http.StatusOK, res)
 	}
 }
 
@@ -418,7 +437,7 @@ func CreateChatHandler(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&i)
 	if err != nil {
 		data := map[string]interface{}{
-			"code":    models.ErrorCodeDecode,
+			"code":    models.ERR_Decode,
 			"message": "failed to decode chat input",
 		}
 		res := models.Response{
@@ -437,7 +456,7 @@ func CreateChatHandler(w http.ResponseWriter, r *http.Request) {
 		switch err.Error() {
 		case "projID param is required":
 			data := map[string]interface{}{
-				"code":    models.ErrorCodeMissingInput,
+				"code":    models.ERR_MissingInput,
 				"message": err.Error(),
 			}
 			res := models.Response{
@@ -450,7 +469,7 @@ func CreateChatHandler(w http.ResponseWriter, r *http.Request) {
 		case "name param is required",
 			"desc param is required":
 			data := map[string]interface{}{
-				"code":    models.ErrorCodeMissingInput,
+				"code":    models.ERR_MissingInput,
 				"message": err.Error(),
 			}
 			res := models.Response{
@@ -463,7 +482,7 @@ func CreateChatHandler(w http.ResponseWriter, r *http.Request) {
 		case "name cannot exceed 160 chars",
 			"desc cannot exceed 260 chars":
 			data := map[string]interface{}{
-				"code":    models.ErrorCodeInvalidInput,
+				"code":    models.ERR_InvalidInput,
 				"message": err.Error(),
 			}
 			res := models.Response{
@@ -476,7 +495,7 @@ func CreateChatHandler(w http.ResponseWriter, r *http.Request) {
 			//
 		case "proj returned nil":
 			data := map[string]interface{}{
-				"code":    models.ErrorCodeWrongProjID,
+				"code":    models.ERR_InvalidProjID,
 				"message": "param is invalid",
 			}
 			res := models.Response{
@@ -498,7 +517,7 @@ func CreateChatHandler(w http.ResponseWriter, r *http.Request) {
 			"failed to find proj with key",
 			"failed to find proj with projID":
 			data := map[string]interface{}{
-				"code":    models.ErrorCodeInternal,
+				"code":    models.ERR_Internal,
 				"message": err.Error(),
 			}
 			res := models.Response{
@@ -532,7 +551,7 @@ func GetChatHandler(w http.ResponseWriter, r *http.Request) {
 		switch err.Error() {
 		case "failed to find chat with chatID":
 			data := map[string]interface{}{
-				"code":    models.ErrorCodeWrongChatID,
+				"code":    models.ERR_InvalidChatID,
 				"message": "param is invalid",
 			}
 			res := models.Response{
@@ -545,7 +564,7 @@ func GetChatHandler(w http.ResponseWriter, r *http.Request) {
 		case "proj returned nil",
 			"failed to find proj with projID":
 			data := map[string]interface{}{
-				"code":    models.ErrorCodeWrongProjID,
+				"code":    models.ERR_InvalidProjID,
 				"message": "param is invalid",
 			}
 			res := models.Response{
@@ -557,7 +576,7 @@ func GetChatHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		case "projID param is required":
 			data := map[string]interface{}{
-				"code":    models.ErrorCodeMissingInput,
+				"code":    models.ERR_MissingInput,
 				"message": err.Error(),
 			}
 			res := models.Response{
@@ -570,7 +589,7 @@ func GetChatHandler(w http.ResponseWriter, r *http.Request) {
 		case "failed to open meta ds",
 			"failed to unmarshal proj":
 			data := map[string]interface{}{
-				"code":    models.ErrorCodeInternal,
+				"code":    models.ERR_Internal,
 				"message": err.Error(),
 			}
 			res := models.Response{
@@ -585,12 +604,12 @@ func GetChatHandler(w http.ResponseWriter, r *http.Request) {
 		data := map[string]interface{}{
 			"chat": chat,
 		}
-		errorResponse := models.Response{
+		res := models.Response{
 			Command: "execGetChat",
 			Data:    data,
 			Status:  "success",
 		}
-		greenLight(w, http.StatusOK, errorResponse)
+		greenLight(w, http.StatusOK, res)
 	}
 }
 
@@ -603,7 +622,7 @@ func ListChatsHandler(w http.ResponseWriter, r *http.Request) {
 		switch err.Error() {
 		case "proj returned nil":
 			data := map[string]interface{}{
-				"code":    models.ErrorCodeWrongProjID,
+				"code":    models.ERR_InvalidProjID,
 				"message": "param is invalid",
 			}
 			res := models.Response{
@@ -615,7 +634,7 @@ func ListChatsHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		case "projID param is required":
 			data := map[string]interface{}{
-				"code":    models.ErrorCodeMissingInput,
+				"code":    models.ERR_MissingInput,
 				"message": err.Error(),
 			}
 			res := models.Response{
@@ -629,7 +648,7 @@ func ListChatsHandler(w http.ResponseWriter, r *http.Request) {
 			"failed to find proj with key",
 			"failed to unmarshal proj":
 			data := map[string]interface{}{
-				"code":    models.ErrorCodeInternal,
+				"code":    models.ERR_Internal,
 				"message": err.Error(),
 			}
 			res := models.Response{
@@ -644,12 +663,12 @@ func ListChatsHandler(w http.ResponseWriter, r *http.Request) {
 		data := map[string]interface{}{
 			"chats": chats,
 		}
-		errorResponse := models.Response{
+		res := models.Response{
 			Command: "execListChats",
 			Data:    data,
 			Status:  "success",
 		}
-		greenLight(w, http.StatusOK, errorResponse)
+		greenLight(w, http.StatusOK, res)
 	}
 }
 
@@ -663,7 +682,7 @@ func UpdateChatHandler(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&i)
 	if err != nil {
 		data := map[string]interface{}{
-			"code":    models.ErrorCodeDecode,
+			"code":    models.ERR_Decode,
 			"message": "failed to decode chat input",
 		}
 		res := models.Response{
@@ -680,7 +699,7 @@ func UpdateChatHandler(w http.ResponseWriter, r *http.Request) {
 		switch err.Error() {
 		case "chat not found with chatID":
 			data := map[string]interface{}{
-				"code":    models.ErrorCodeWrongChatID,
+				"code":    models.ERR_InvalidChatID,
 				"message": "param is invalid",
 			}
 			res := models.Response{
@@ -692,7 +711,7 @@ func UpdateChatHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		case "proj returned nil":
 			data := map[string]interface{}{
-				"code":    models.ErrorCodeWrongProjID,
+				"code":    models.ERR_InvalidProjID,
 				"message": "param is invalid",
 			}
 			res := models.Response{
@@ -705,7 +724,7 @@ func UpdateChatHandler(w http.ResponseWriter, r *http.Request) {
 		case "projID param is required",
 			"chatID param is required":
 			data := map[string]interface{}{
-				"code":    models.ErrorCodeMissingInput,
+				"code":    models.ERR_MissingInput,
 				"message": err.Error(),
 			}
 			res := models.Response{
@@ -718,7 +737,7 @@ func UpdateChatHandler(w http.ResponseWriter, r *http.Request) {
 		case "name cannot exceed 160 chars",
 			"desc cannot exceed 260 chars":
 			data := map[string]interface{}{
-				"code":    models.ErrorCodeInvalidInput,
+				"code":    models.ERR_InvalidInput,
 				"message": err.Error(),
 			}
 			res := models.Response{
@@ -736,7 +755,7 @@ func UpdateChatHandler(w http.ResponseWriter, r *http.Request) {
 			"failed to find proj with key",
 			"failed to unmarshal proj":
 			data := map[string]interface{}{
-				"code":    models.ErrorCodeInternal,
+				"code":    models.ERR_Internal,
 				"message": err.Error(),
 			}
 			res := models.Response{
@@ -771,7 +790,7 @@ func DeleteChatHandler(w http.ResponseWriter, r *http.Request) {
 		case "projID param is required",
 			"chatID param is required":
 			data := map[string]interface{}{
-				"code":    models.ErrorCodeMissingInput,
+				"code":    models.ERR_MissingInput,
 				"message": err.Error(),
 			}
 			res := models.Response{
@@ -783,7 +802,7 @@ func DeleteChatHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		case "failed to find chat with chatID":
 			data := map[string]interface{}{
-				"code":    models.ErrorCodeWrongChatID,
+				"code":    models.ERR_InvalidChatID,
 				"message": "param is invalid",
 			}
 			res := models.Response{
@@ -796,7 +815,7 @@ func DeleteChatHandler(w http.ResponseWriter, r *http.Request) {
 		case "proj returned nil",
 			"failed to find proj with projID":
 			data := map[string]interface{}{
-				"code":    models.ErrorCodeWrongProjID,
+				"code":    models.ERR_InvalidProjID,
 				"message": "param is invalid",
 			}
 			res := models.Response{
@@ -811,7 +830,7 @@ func DeleteChatHandler(w http.ResponseWriter, r *http.Request) {
 			"failed to marshal proj",
 			"failed to store new proj":
 			data := map[string]interface{}{
-				"code":    models.ErrorCodeInternal,
+				"code":    models.ERR_Internal,
 				"message": err.Error(),
 			}
 			res := models.Response{
@@ -826,12 +845,12 @@ func DeleteChatHandler(w http.ResponseWriter, r *http.Request) {
 		data := map[string]interface{}{
 			"deleted": true,
 		}
-		errorResponse := models.Response{
+		res := models.Response{
 			Command: "execDeleteChat",
 			Data:    data,
 			Status:  "success",
 		}
-		greenLight(w, http.StatusOK, errorResponse)
+		greenLight(w, http.StatusOK, res)
 	}
 }
 
@@ -848,7 +867,7 @@ func CreateMessageHandler(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&i)
 	if err != nil {
 		data := map[string]interface{}{
-			"code":    models.ErrorCodeDecode,
+			"code":    models.ERR_Decode,
 			"message": "failed to decode msg input",
 		}
 		res := models.Response{
@@ -865,9 +884,10 @@ func CreateMessageHandler(w http.ResponseWriter, r *http.Request) {
 		switch err.Error() {
 		case "failed to open chat ds",
 			"failed to marshal msg",
+			"failed to find proj with projID",
 			"failed to store msg":
 			data := map[string]interface{}{
-				"code":    models.ErrorCodeInternal,
+				"code":    models.ERR_Internal,
 				"message": err.Error(),
 			}
 			res := models.Response{
@@ -904,7 +924,7 @@ func GetMessageHandler(w http.ResponseWriter, r *http.Request) {
 			"failed to pull msg with key",
 			"failed to unmarshal msg":
 			data := map[string]interface{}{
-				"code":    models.ErrorCodeInternal,
+				"code":    models.ERR_Internal,
 				"message": err.Error(),
 			}
 			res := models.Response{
@@ -940,7 +960,7 @@ func ListMessagesHandler(w http.ResponseWriter, r *http.Request) {
 			"failed to pull msg with key",
 			"failed to unmarshal msg":
 			data := map[string]interface{}{
-				"code":    models.ErrorCodeInternal,
+				"code":    models.ERR_Internal,
 				"message": err.Error(),
 			}
 			res := models.Response{
@@ -975,7 +995,7 @@ func UpdateMessageHandler(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&i)
 	if err != nil {
 		data := map[string]interface{}{
-			"code":    models.ErrorCodeDecode,
+			"code":    models.ERR_Decode,
 			"message": "failed to decode msg input",
 		}
 		res := models.Response{
@@ -995,7 +1015,7 @@ func UpdateMessageHandler(w http.ResponseWriter, r *http.Request) {
 			"failed to marshal msg",
 			"failed to store msg":
 			data := map[string]interface{}{
-				"code":    models.ErrorCodeInternal,
+				"code":    models.ERR_Internal,
 				"message": err.Error(),
 			}
 			res := models.Response{
@@ -1033,7 +1053,7 @@ func DeleteMessageHandler(w http.ResponseWriter, r *http.Request) {
 			"failed to marshal msg",
 			"failed to unmarshal msg":
 			data := map[string]interface{}{
-				"code":    models.ErrorCodeInternal,
+				"code":    models.ERR_Internal,
 				"message": err.Error(),
 			}
 			res := models.Response{
@@ -1068,7 +1088,7 @@ func NewMessageHandler(w http.ResponseWriter, r *http.Request) {
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		dataRes := map[string]interface{}{
-			"code": models.ErrorCodeInternal,
+			"code": models.ERR_Internal,
 			"msg":  "failed to upgrade ws: " + err.Error(),
 		}
 		errorMessage := map[string]interface{}{
@@ -1086,7 +1106,7 @@ func NewMessageHandler(w http.ResponseWriter, r *http.Request) {
 	_, msg, err := ws.ReadMessage()
 	if err != nil {
 		dataRes := map[string]interface{}{
-			"code": models.ErrorCodeInternal,
+			"code": models.ERR_Internal,
 			"msg":  err.Error(),
 		}
 		errorMessage := map[string]interface{}{
@@ -1103,7 +1123,7 @@ func NewMessageHandler(w http.ResponseWriter, r *http.Request) {
 	_, err = store.CreateMessage(chatID, projID, string(msg), true)
 	if err != nil {
 		dataRes := map[string]interface{}{
-			"code": models.ErrorCodeInternal,
+			"code": models.ERR_Internal,
 			"msg":  err.Error(),
 		}
 		errorMessage := map[string]interface{}{
@@ -1125,7 +1145,7 @@ func NewMessageHandler(w http.ResponseWriter, r *http.Request) {
 	)
 	if err != nil {
 		dataRes := map[string]interface{}{
-			"code": models.ErrorCodeInternal,
+			"code": models.ERR_Internal,
 			"msg":  err.Error(),
 		}
 		errorMessage := map[string]interface{}{
@@ -1150,7 +1170,7 @@ func NewMessageHandler(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		dataRes := map[string]interface{}{
-			"code": models.ErrorCodeInternal,
+			"code": models.ERR_Internal,
 			"msg":  err.Error(),
 		}
 		errorMessage := map[string]interface{}{
@@ -1173,7 +1193,7 @@ func NewMessageHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		if err != nil {
 			dataRes := map[string]interface{}{
-				"code": models.ErrorCodeInternal,
+				"code": models.ERR_Internal,
 				"msg":  "failed to receive gRPC res: " + err.Error(),
 			}
 			errorMessage := map[string]interface{}{
@@ -1190,7 +1210,7 @@ func NewMessageHandler(w http.ResponseWriter, r *http.Request) {
 		jsonData, err := json.Marshal(grpcResponse)
 		if err != nil {
 			dataRes := map[string]interface{}{
-				"code": models.ErrorCodeInternal,
+				"code": models.ERR_Internal,
 				"msg":  "failed to unmarshal gRPC res: " + err.Error(),
 			}
 			errorMessage := map[string]interface{}{
@@ -1207,7 +1227,7 @@ func NewMessageHandler(w http.ResponseWriter, r *http.Request) {
 		err = ws.WriteMessage(websocket.TextMessage, jsonData)
 		if err != nil {
 			dataRes := map[string]interface{}{
-				"code": models.ErrorCodeInternal,
+				"code": models.ERR_Internal,
 				"msg":  "failed to write ws msg: " + err.Error(),
 			}
 			errorMessage := map[string]interface{}{
@@ -1229,7 +1249,7 @@ func NewMessageHandler(w http.ResponseWriter, r *http.Request) {
 	_, err = store.CreateMessage(chatID, projID, res, false)
 	if err != nil {
 		dataRes := map[string]interface{}{
-			"code": models.ErrorCodeInternal,
+			"code": models.ERR_Internal,
 			"msg":  "failed to create new msg: " + err.Error(),
 		}
 		errorMessage := map[string]interface{}{

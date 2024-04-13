@@ -38,11 +38,10 @@ type Message struct {
 }
 
 const (
-	ErrorCodeInternal     = "INTERNAL_ERR"
-	ErrorCodeWrongKey     = "WRONG_KEY_ERR"
-	ErrorCodeMissingInput = "MISSING_INPUT_ERR"
-	ErrorCodeInvalidInput = "INVALID_INPUT_ERR"
-	ErrorCodeWrongProjID  = "WRONG_PROJ_ID"
-	ErrorCodeWrongChatID  = "WRONG_CHAT_ID"
-	ErrorCodeDecode       = "DECODING_ERR"
+	ERR_Internal      = "INTERNAL"
+	ERR_MissingInput  = "MISSING_INPUT"
+	ERR_InvalidInput  = "INVALID_INPUT"
+	ERR_InvalidProjID = "INVALID_PROJ_ID"
+	ERR_InvalidChatID = "INVALID_CHAT_ID"
+	ERR_Decode        = "DECODING"
 )

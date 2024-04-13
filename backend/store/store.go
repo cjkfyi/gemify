@@ -17,19 +17,6 @@ import (
 //
 // Project
 
-func openMeta() (
-	*bitcask.DB,
-	error,
-) {
-	meta, err := bitcask.Open(path.Join(dataPath, "meta"))
-	if err != nil {
-		return nil, err
-	}
-	return &meta, nil
-}
-
-//
-
 func CreateProject(
 	i *models.Project,
 ) (
@@ -48,12 +35,6 @@ func CreateProject(
 	} else if len(i.Desc) > 260 {
 		return nil, errors.New("desc cannot exceed 260 chars")
 	}
-
-	meta, err := openMeta()
-	if err != nil {
-		return nil, errors.New("failed to open meta ds")
-	}
-	defer (*meta).Close()
 
 	projID := GenID()
 	stamp := int(time.Now().UnixNano())
@@ -75,6 +56,12 @@ func CreateProject(
 
 	key := keygen(stamp, projID)
 
+	meta, err := openMeta()
+	if err != nil {
+		return nil, err
+	}
+	defer (*meta).Close()
+
 	if err := (*meta).Put([]byte(key), val); err != nil {
 		return nil, errors.New("failed to store proj in meta ds")
 	}
@@ -93,13 +80,9 @@ func GetProject(
 
 	var proj *models.Project
 
-	if projID == "" {
-		return nil, errors.New("projID param is required")
-	}
-
 	meta, err := openMeta()
 	if err != nil {
-		return nil, errors.New("failed to open meta ds")
+		return nil, err
 	}
 	defer (*meta).Close()
 
@@ -148,7 +131,7 @@ func ListProjects() (
 
 	meta, err := openMeta()
 	if err != nil {
-		return nil, errors.New("failed to open meta ds")
+		return nil, err
 	}
 	defer (*meta).Close()
 
@@ -193,6 +176,8 @@ func UpdateProject(
 	error,
 ) {
 
+	var oldKey string
+
 	if projID == "" {
 		return nil, errors.New("projID param is required")
 	}
@@ -221,20 +206,18 @@ func UpdateProject(
 		}
 	}
 
-	meta, err := openMeta()
-	if err != nil {
-		return nil, errors.New("failed to open meta ds")
-	}
-	defer (*meta).Close()
-
-	var oldKey string
-
 	key := keygen(stamp, project.ProjID)
 
 	val, err := json.Marshal(project)
 	if err != nil {
 		return nil, errors.New("failed to marshal updated proj")
 	}
+
+	meta, err := openMeta()
+	if err != nil {
+		return nil, err
+	}
+	defer (*meta).Close()
 
 	err = (*meta).Scan([]byte(""), func(k bitcask.Key) error {
 
@@ -261,7 +244,7 @@ func UpdateProject(
 	}
 
 	if project == nil {
-		return nil, errors.New("proj was nil")
+		return nil, errors.New("proj returned nil")
 	} else {
 		return project, nil
 	}
@@ -273,17 +256,17 @@ func DeleteProject(
 	projID string,
 ) error {
 
+	var key string
+
 	if projID == "" {
 		return errors.New("projID param is required")
 	}
 
 	meta, err := openMeta()
 	if err != nil {
-		return errors.New("failed to open meta ds")
+		return err
 	}
 	defer (*meta).Close()
-
-	var key string
 
 	err = (*meta).Scan([]byte(""), func(k bitcask.Key) error {
 
@@ -315,79 +298,7 @@ func DeleteProject(
 //
 // Chat
 
-func openChat(
-	projID,
-	chatID string,
-) (
-	*bitcask.DB,
-	error,
-) {
-
-	projPath := path.Join(dataPath, projID)
-
-	if _, err := os.Stat(projPath); os.IsNotExist(err) {
-		return nil, errors.New("failed to find proj with projID")
-	}
-
-	chatPath := path.Join(projPath, chatID)
-	chat, err := bitcask.Open(chatPath)
-	if err != nil {
-		return nil, errors.New("failed to open chat ds")
-	}
-
-	return &chat, nil
-}
-
 //
-
-func addChat(
-	project *models.Project,
-) error {
-
-	val, err := json.Marshal(project)
-	if err != nil {
-		return errors.New("failed to marshal proj")
-	}
-
-	metaDB, err := openMeta()
-	if err != nil {
-		return errors.New("failed to open meta ds")
-	}
-	defer (*metaDB).Close()
-
-	var oldKey string
-
-	err = (*metaDB).Scan([]byte(""), func(key bitcask.Key) error {
-
-		metaKey := string(key)
-
-		projID, _, err := extractKey(metaKey)
-		if err == nil && projID == project.ProjID {
-			oldKey = metaKey
-		}
-
-		return nil
-	})
-
-	if err != nil || oldKey == "" {
-		return errors.New("failed to find proj with projID")
-	}
-
-	stamp := int(time.Now().UnixNano())
-	newKey := keygen(stamp, project.ProjID)
-
-	err = (*metaDB).Put([]byte(newKey), val)
-	if err != nil {
-		return errors.New("failed to store new chat entity")
-	}
-
-	err = (*metaDB).Delete([]byte(oldKey))
-	if err != nil {
-		return errors.New("failed to delete old chat entity")
-	}
-
-	return nil
-}
 
 //
 
@@ -425,7 +336,7 @@ func CreateChat(
 	proj.Chats = append(proj.Chats, *i)
 	proj.LastModified = stamp
 
-	err = addChat(proj)
+	err = updateProject(proj)
 	if err != nil {
 		return nil, err
 	}
@@ -551,7 +462,7 @@ func UpdateChat(
 
 	meta, err := openMeta()
 	if err != nil {
-		return nil, errors.New("failed to open meta ds")
+		return nil, err
 	}
 	defer (*meta).Close()
 
@@ -602,7 +513,7 @@ func DeleteChat(
 
 	meta, err := openMeta()
 	if err != nil {
-		return errors.New("failed to open meta ds")
+		return err
 	}
 	defer (*meta).Close()
 
@@ -678,13 +589,14 @@ func CreateMessage(
 
 	msgID := GenID()
 	stamp := int(time.Now().UnixNano())
+	key := keygen(stamp, msgID)
 
 	new := &models.Message{
 		ID:           msgID,
 		ChatID:       chatID,
 		ProjID:       projID,
 		IsUser:       isUser,
-		Message:      string(msg),
+		Message:      msg,
 		LastModified: stamp,
 		FirstCreated: stamp,
 	}
@@ -700,8 +612,7 @@ func CreateMessage(
 		return nil, errors.New("failed to marshal msg")
 	}
 
-	// messageKey := fmt.Sprintf("%s:%d:%s", chatID, stamp, msgID)
-	err = (*chat).Put([]byte(msgID), val)
+	err = (*chat).Put([]byte(key), val)
 	if err != nil {
 		return nil, errors.New("failed to store msg")
 	}

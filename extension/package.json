@@ -2,7 +2,7 @@
   "name": "gemify",
   "displayName": "Gemify",
   "description": "Yet another coding assistant 🌬️",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "engines": {
     "vscode": "^1.86.2"
   },
