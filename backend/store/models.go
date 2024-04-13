@@ -1,10 +1,4 @@
-package models
-
-type Response struct {
-	Command string                 `json:"command"`
-	Data    map[string]interface{} `json:"data"`
-	Status  string                 `json:"status"`
-}
+package store
 
 type Project struct {
 	ProjID       string `json:"projID"`
@@ -26,8 +20,7 @@ type Chat struct {
 }
 
 type Message struct {
-	// rename to MsgID
-	ID           string `json:"id"`
+	MsgID        string `json:"msgID"`
 	ChatID       string `json:"chatID"`
 	ProjID       string `json:"projID"`
 	IsUser       bool   `json:"isUser"`

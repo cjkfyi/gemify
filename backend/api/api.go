@@ -12,6 +12,12 @@ import (
 	"google.golang.org/api/option"
 )
 
+type Response struct {
+	Command string                 `json:"command"`
+	Data    map[string]interface{} `json:"data"`
+	Status  string                 `json:"status"`
+}
+
 var (
 	isTest    = flag.Bool("test_env", true, "Test environment")
 	prox_port = flag.Int("prox_port", 8080, "Proxy server port")

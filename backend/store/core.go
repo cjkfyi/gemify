@@ -3,7 +3,6 @@ package store
 import (
 	"encoding/json"
 	"errors"
-	"gemify/models"
 	"path"
 	"time"
 
@@ -50,7 +49,7 @@ func openChat(
 }
 
 func updateProject(
-	i *models.Project,
+	i *Project,
 ) error {
 
 	var oldKey string
