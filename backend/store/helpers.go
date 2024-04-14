@@ -19,7 +19,6 @@ const dataPath = ".data"
 
 //
 
-// Used to validate a specific projID
 func isProj(projID string) error {
 	path := path.Join(dataPath, projID)
 	_, err := os.Stat(path)
@@ -32,7 +31,6 @@ func isProj(projID string) error {
 	}
 }
 
-// Used to validate a pair of proj & chat IDs
 func isChat(projID, chatID string) error {
 	projPath := path.Join(dataPath, projID)
 	chatPath := path.Join(projPath, chatID)
@@ -52,9 +50,6 @@ func isChat(projID, chatID string) error {
 		}
 	}
 }
-
-// as long as we have strict creations,
-// these helpers should make good sense
 
 //
 

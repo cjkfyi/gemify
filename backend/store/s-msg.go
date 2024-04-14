@@ -159,32 +159,31 @@ func UpdateMessage(
 	*Message,
 	error,
 ) {
-
 	var msg Message
 	var key string
 
 	chat, err := openChat(projID, chatID)
 	if err != nil {
-		return nil, errors.New("failed to open chat ds")
+		return nil, err
 	}
 	defer (*chat).Close()
 
 	err = (*chat).Scan([]byte(""), func(k bitcask.Key) error {
 
-		strKey := string(k)
+		chatKey := string(k)
 
-		if strings.HasSuffix(strKey, msgID) {
+		if strings.HasSuffix(chatKey, msgID) {
 
-			key = strKey
+			key = chatKey
 
 			data, err := (*chat).Get([]byte(key))
 			if err != nil {
-				return errors.New("failed to pull msg with keys")
+				return errors.New("failed ds op")
 			}
 
 			err = json.Unmarshal(data, &msg)
 			if err != nil {
-				return errors.New("failed to unmarshal msg")
+				return errors.New("failed ds op")
 			}
 
 			msg = i
@@ -192,12 +191,12 @@ func UpdateMessage(
 
 			val, err := json.Marshal(msg)
 			if err != nil {
-				return errors.New("failed to marshal msg")
+				return errors.New("failed ds op")
 			}
 
 			err = (*chat).Put([]byte(key), val)
 			if err != nil {
-				return errors.New("failed to store msg")
+				return errors.New("failed ds op")
 			}
 
 			return nil
@@ -206,8 +205,6 @@ func UpdateMessage(
 	})
 	if err != nil {
 		return nil, err
-	} else if key == "" {
-		return nil, errors.New("failed to find msg with keys")
 	} else {
 		return &msg, nil
 	}
@@ -232,34 +229,33 @@ func DeleteMessage(
 
 	err = (*chat).Scan([]byte(""), func(k bitcask.Key) error {
 
-		strKey := string(k)
+		chatKey := string(k)
 
-		if strings.HasSuffix(strKey, msgID) {
+		if strings.HasSuffix(chatKey, msgID) {
 
-			key = strKey
+			key = chatKey
 
 			data, err := (*chat).Get([]byte(key))
 			if err != nil {
-				return errors.New("failed to pull msg with key")
+				return errors.New("failed ds op")
 			}
 
 			err = json.Unmarshal(data, &msg)
 			if err != nil {
-				return errors.New("failed to unmarshal msg")
+				return errors.New("failed ds op")
 			}
 
 			msg.IsDeleted = true
 
 			val, err := json.Marshal(msg)
 			if err != nil {
-				return errors.New("failed to marshal msg")
+				return errors.New("failed ds op")
 			}
 
 			err = (*chat).Put([]byte(key), val)
 			if err != nil {
-				return errors.New("failed to store updated msg")
+				return errors.New("failed ds op")
 			}
-
 			return nil
 		}
 		return nil

@@ -227,6 +227,12 @@ func DeleteProject(projID string) error {
 	err = (*meta).Delete([]byte(key))
 	if err != nil {
 		return errors.New("failed ds op")
+	}
+
+	projDir := path.Join(dataPath, projID)
+	err = os.RemoveAll(projDir)
+	if err != nil {
+		return errors.New("failed ds op")
 	} else {
 		return nil
 	}

@@ -3,6 +3,8 @@ package store
 import (
 	"encoding/json"
 	"errors"
+	"os"
+	"path"
 	"time"
 
 	"go.mills.io/bitcask/v2"
@@ -35,6 +37,14 @@ func CreateChat(i *Chat) (*Chat, error) {
 
 	proj.Chats = append(proj.Chats, *i)
 	proj.LastModified = stamp
+
+	projDir := path.Join(dataPath, proj.ProjID)
+	chat := path.Join(projDir, chatID)
+	meta, err := bitcask.Open(chat)
+	if err != nil {
+		return nil, errors.New("failed ds op")
+	}
+	defer meta.Close()
 
 	err = updateProject(proj)
 	if err != nil {
@@ -104,6 +114,10 @@ func UpdateChat(projID, chatID string, i Chat) (*Chat, error) {
 		return nil, errors.New("`chatID` param is required")
 	}
 
+	err := isChat(projID, chatID)
+	if err != nil {
+		return nil, err
+	}
 	proj, err := GetProject(projID)
 	if err != nil {
 		return nil, err
@@ -223,8 +237,6 @@ func DeleteChat(projID, chatID string) error {
 						project.Chats[i+1:]...,
 					)
 					break
-				} else {
-					return errors.New("failed ds op")
 				}
 			}
 
@@ -244,6 +256,13 @@ func DeleteChat(projID, chatID string) error {
 	if err != nil {
 		return err
 	} else {
-		return nil
+		projDir := path.Join(dataPath, projID)
+		chatDir := path.Join(projDir, chatID)
+		err = os.RemoveAll(chatDir)
+		if err != nil {
+			return errors.New("failed ds op")
+		} else {
+			return nil
+		}
 	}
 }

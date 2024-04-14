@@ -9,8 +9,10 @@ import (
 	"gemify/store"
 )
 
-func CreateMsg(w http.ResponseWriter, r *http.Request) {
-
+func CreateMsg(
+	w http.ResponseWriter,
+	r *http.Request,
+) {
 	var i store.Message
 
 	chatID := chi.URLParam(r, "chatID")
@@ -23,7 +25,7 @@ func CreateMsg(w http.ResponseWriter, r *http.Request) {
 			"message": "failed to decode msg input",
 		}
 		res := Response{
-			Command: "execCreateMessage",
+			Command: "execCreateMsg",
 			Data:    data,
 			Status:  "error",
 		}
@@ -43,7 +45,7 @@ func CreateMsg(w http.ResponseWriter, r *http.Request) {
 				"message": err.Error(),
 			}
 			res := Response{
-				Command: "execCreateMessage",
+				Command: "execCreateMsg",
 				Data:    data,
 				Status:  "error",
 			}
@@ -55,7 +57,7 @@ func CreateMsg(w http.ResponseWriter, r *http.Request) {
 			"message": val,
 		}
 		res := Response{
-			Command: "execCreateMessage",
+			Command: "execCreateMsg",
 			Data:    data,
 			Status:  "success",
 		}
@@ -65,8 +67,10 @@ func CreateMsg(w http.ResponseWriter, r *http.Request) {
 
 //
 
-func GetMsg(w http.ResponseWriter, r *http.Request) {
-
+func GetMsg(
+	w http.ResponseWriter,
+	r *http.Request,
+) {
 	projID := chi.URLParam(r, "projID")
 	chatID := chi.URLParam(r, "chatID")
 	msgID := chi.URLParam(r, "msgID")
@@ -82,7 +86,7 @@ func GetMsg(w http.ResponseWriter, r *http.Request) {
 				"message": err.Error(),
 			}
 			res := Response{
-				Command: "execGetMessage",
+				Command: "execGetMsg",
 				Data:    data,
 				Status:  "error",
 			}
@@ -94,7 +98,7 @@ func GetMsg(w http.ResponseWriter, r *http.Request) {
 			"message": message,
 		}
 		res := Response{
-			Command: "execGetMessage",
+			Command: "execGetMsg",
 			Data:    data,
 			Status:  "success",
 		}
@@ -104,8 +108,10 @@ func GetMsg(w http.ResponseWriter, r *http.Request) {
 
 //
 
-func ListMsgs(w http.ResponseWriter, r *http.Request) {
-
+func ListMsgs(
+	w http.ResponseWriter,
+	r *http.Request,
+) {
 	chatID := chi.URLParam(r, "chatID")
 	projID := chi.URLParam(r, "projID")
 
@@ -142,8 +148,10 @@ func ListMsgs(w http.ResponseWriter, r *http.Request) {
 
 //
 
-func UpdateMsg(w http.ResponseWriter, r *http.Request) {
-
+func UpdateMsg(
+	w http.ResponseWriter,
+	r *http.Request,
+) {
 	var i store.Message
 
 	projID := chi.URLParam(r, "projID")
@@ -154,10 +162,10 @@ func UpdateMsg(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		data := map[string]interface{}{
 			"code":    store.ERR_Decode,
-			"message": "failed to decode msg input",
+			"message": "failed to decode input",
 		}
 		res := Response{
-			Command: "execUpdateMessage",
+			Command: "execUpdateMsg",
 			Data:    data,
 			Status:  "error",
 		}
@@ -168,16 +176,29 @@ func UpdateMsg(w http.ResponseWriter, r *http.Request) {
 	msg, err := store.UpdateMessage(projID, chatID, msgID, i)
 	if err != nil {
 		switch err.Error() {
-		case "failed to pull msg with keys",
-			"failed to unmarshal msg",
-			"failed to marshal msg",
-			"failed to store msg":
+		case
+			"invalid `chatID` parameter",
+			"invalid `projID` parameter":
 			data := map[string]interface{}{
-				"code":    store.ERR_Internal,
+				"code":    store.ERR_InvalidParam,
 				"message": err.Error(),
 			}
 			res := Response{
-				Command: "execUpdateMessage",
+				Command: "execUpdateMsg",
+				Data:    data,
+				Status:  "error",
+			}
+			redFlag(w, http.StatusBadRequest, res)
+			return
+		case
+			"failed ds op",
+			"failed to open chat ds":
+			data := map[string]interface{}{
+				"code":    store.ERR_Internal,
+				"message": "oops, something uhh...",
+			}
+			res := Response{
+				Command: "execUpdateMsg",
 				Data:    data,
 				Status:  "error",
 			}
@@ -189,7 +210,7 @@ func UpdateMsg(w http.ResponseWriter, r *http.Request) {
 			"message": msg,
 		}
 		res := Response{
-			Command: "execUpdateMessage",
+			Command: "execUpdateMsg",
 			Data:    data,
 			Status:  "success",
 		}
@@ -199,8 +220,10 @@ func UpdateMsg(w http.ResponseWriter, r *http.Request) {
 
 //
 
-func DeleteMsg(w http.ResponseWriter, r *http.Request) {
-
+func DeleteMsg(
+	w http.ResponseWriter,
+	r *http.Request,
+) {
 	projID := chi.URLParam(r, "projID")
 	chatID := chi.URLParam(r, "chatID")
 	msgID := chi.URLParam(r, "msgID")
@@ -208,16 +231,29 @@ func DeleteMsg(w http.ResponseWriter, r *http.Request) {
 	err := store.DeleteMessage(projID, chatID, msgID)
 	if err != nil {
 		switch err.Error() {
-		case "failed to pull msg with key",
-			"failed to store updated msg",
-			"failed to marshal msg",
-			"failed to unmarshal msg":
+		case
+			"invalid `projID` parameter",
+			"invalid `chatID` parameter":
 			data := map[string]interface{}{
-				"code":    store.ERR_Internal,
+				"code":    store.ERR_InvalidParam,
 				"message": err.Error(),
 			}
 			res := Response{
-				Command: "execDeleteMessage",
+				Command: "execDeleteMsg",
+				Data:    data,
+				Status:  "error",
+			}
+			redFlag(w, http.StatusBadRequest, res)
+			return
+		case
+			"failed ds op",
+			"failed to open chat ds":
+			data := map[string]interface{}{
+				"code":    store.ERR_Internal,
+				"message": "oops, something uhh...",
+			}
+			res := Response{
+				Command: "execDeleteMsg",
 				Data:    data,
 				Status:  "error",
 			}
@@ -229,7 +265,7 @@ func DeleteMsg(w http.ResponseWriter, r *http.Request) {
 			"deleted": true,
 		}
 		res := Response{
-			Command: "execDeleteMessage",
+			Command: "execDeleteMsg",
 			Data:    data,
 			Status:  "success",
 		}

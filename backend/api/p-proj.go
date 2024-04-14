@@ -66,7 +66,7 @@ func CreateProj(
 			"failed to open meta ds":
 			data := map[string]interface{}{
 				"code":    store.ERR_Internal,
-				"message": err.Error(),
+				"message": "oops, something uhh...",
 			}
 			res := Response{
 				Command: "execCreateProj",
