@@ -31,10 +31,9 @@ type Message struct {
 }
 
 const (
-	ERR_Internal      = "INTERNAL"
-	ERR_MissingInput  = "MISSING_INPUT"
-	ERR_InvalidInput  = "INVALID_INPUT"
-	ERR_InvalidProjID = "INVALID_PROJ_ID"
-	ERR_InvalidChatID = "INVALID_CHAT_ID"
-	ERR_Decode        = "DECODING"
+	ERR_Internal     = "INTERNAL"
+	ERR_MissingInput = "MISSING_INPUT"
+	ERR_InvalidInput = "INVALID_INPUT"
+	ERR_InvalidParam = "INVALID_PARAMETER"
+	ERR_Decode       = "DECODING"
 )

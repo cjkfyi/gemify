@@ -13,7 +13,6 @@ func CreateProj(
 	w http.ResponseWriter,
 	r *http.Request,
 ) {
-
 	var project store.Project
 
 	err := json.NewDecoder(r.Body).Decode(&project)
@@ -34,7 +33,8 @@ func CreateProj(
 	proj, err := store.CreateProject(&project)
 	if err != nil {
 		switch err.Error() {
-		case "`name` param is required",
+		case
+			"`name` param is required",
 			"`desc` param is required":
 			data := map[string]interface{}{
 				"code":    store.ERR_MissingInput,
@@ -47,7 +47,8 @@ func CreateProj(
 			}
 			redFlag(w, http.StatusBadRequest, res)
 			return
-		case "`name` cannot exceed 160 chars",
+		case
+			"`name` cannot exceed 160 chars",
 			"`desc` cannot exceed 260 chars":
 			data := map[string]interface{}{
 				"code":    store.ERR_InvalidInput,
@@ -60,7 +61,8 @@ func CreateProj(
 			}
 			redFlag(w, http.StatusBadRequest, res)
 			return
-		case "failed ds op",
+		case
+			"failed ds op",
 			"failed to open meta ds":
 			data := map[string]interface{}{
 				"code":    store.ERR_Internal,
@@ -93,15 +95,15 @@ func GetProj(
 	w http.ResponseWriter,
 	r *http.Request,
 ) {
-
 	projID := chi.URLParam(r, "projID")
 
 	project, err := store.GetProject(projID)
 	if err != nil {
 		switch err.Error() {
-		case "invalid projID parameter":
+		case
+			"invalid `projID` parameter":
 			data := map[string]interface{}{
-				"code":    store.ERR_InvalidProjID,
+				"code":    store.ERR_InvalidParam,
 				"message": err.Error(),
 			}
 			res := Response{
@@ -111,11 +113,12 @@ func GetProj(
 			}
 			redFlag(w, http.StatusBadRequest, res)
 			return
-		case "failed ds op",
+		case
+			"failed ds op",
 			"failed to open meta ds":
 			data := map[string]interface{}{
 				"code":    store.ERR_Internal,
-				"message": err.Error(),
+				"message": "oops, something uhh...",
 			}
 			res := Response{
 				Command: "execGetProj",
@@ -144,15 +147,15 @@ func ListProjs(
 	w http.ResponseWriter,
 	r *http.Request,
 ) {
-
 	projects, err := store.ListProjects()
 	if err != nil {
 		switch err.Error() {
-		case "failed ds op",
+		case
+			"failed ds op",
 			"failed to open meta ds":
 			data := map[string]interface{}{
 				"code":    store.ERR_Internal,
-				"message": err.Error(),
+				"message": "oops, something uhh...",
 			}
 			res := Response{
 				Command: "execListProjs",
@@ -181,7 +184,6 @@ func UpdateProj(
 	w http.ResponseWriter,
 	r *http.Request,
 ) {
-
 	var updatedData store.Project
 
 	projID := chi.URLParam(r, "projID")
@@ -204,9 +206,10 @@ func UpdateProj(
 	proj, err := store.UpdateProject(projID, updatedData)
 	if err != nil {
 		switch err.Error() {
-		case "invalid projID parameter":
+		case
+			"invalid `projID` parameter":
 			data := map[string]interface{}{
-				"code":    store.ERR_InvalidProjID,
+				"code":    store.ERR_InvalidParam,
 				"message": err.Error(),
 			}
 			res := Response{
@@ -217,7 +220,8 @@ func UpdateProj(
 			redFlag(w, http.StatusBadRequest, res)
 			return
 
-		case "name cannot exceed 160 chars",
+		case
+			"name cannot exceed 160 chars",
 			"desc cannot exceed 260 chars":
 			data := map[string]interface{}{
 				"code":    store.ERR_InvalidInput,
@@ -231,11 +235,12 @@ func UpdateProj(
 			redFlag(w, http.StatusBadRequest, res)
 			return
 
-		case "failed ds op",
+		case
+			"failed ds op",
 			"failed to open meta ds":
 			data := map[string]interface{}{
 				"code":    store.ERR_Internal,
-				"message": err.Error(),
+				"message": "oops, something uhh...",
 			}
 			res := Response{
 				Command: "execUpdateProj",
@@ -264,15 +269,15 @@ func DeleteProj(
 	w http.ResponseWriter,
 	r *http.Request,
 ) {
-
 	projID := chi.URLParam(r, "projID")
 
 	err := store.DeleteProject(projID)
 	if err != nil {
 		switch err.Error() {
-		case "invalid projID parameter":
+		case
+			"invalid `projID` parameter":
 			data := map[string]interface{}{
-				"code":    store.ERR_InvalidProjID,
+				"code":    store.ERR_InvalidParam,
 				"message": err.Error(),
 			}
 			res := Response{
@@ -282,11 +287,12 @@ func DeleteProj(
 			}
 			redFlag(w, http.StatusBadRequest, res)
 			return
-		case "failed ds op",
+		case
+			"failed ds op",
 			"failed to open meta ds":
 			data := map[string]interface{}{
 				"code":    store.ERR_Internal,
-				"message": err.Error(),
+				"message": "oops, something uhh...",
 			}
 			res := Response{
 				Command: "execDeleteProj",

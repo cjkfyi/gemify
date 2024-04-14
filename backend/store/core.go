@@ -87,7 +87,7 @@ func updateProject(
 
 	val, err := json.Marshal(i)
 	if err != nil {
-		return errors.New("failed to marshal")
+		return errors.New("failed ds op")
 	}
 
 	meta, err := openMeta()

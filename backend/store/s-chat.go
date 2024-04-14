@@ -8,23 +8,17 @@ import (
 	"go.mills.io/bitcask/v2"
 )
 
-func CreateChat(
-	i *Chat,
-) (
-	*Chat,
-	error,
-) {
+func CreateChat(i *Chat) (*Chat, error) {
 
 	if i.Name == "" {
-		return nil, errors.New("name param is required")
+		return nil, errors.New("`name` param is required")
 	} else if len(i.Name) > 160 {
-		return nil, errors.New("name cannot exceed 160 chars")
+		return nil, errors.New("`name` cannot exceed 160 chars")
 	}
-
 	if i.Desc == "" {
-		return nil, errors.New("desc param is required")
+		return nil, errors.New("`desc` param is required")
 	} else if len(i.Desc) > 260 {
-		return nil, errors.New("desc cannot exceed 260 chars")
+		return nil, errors.New("`desc` cannot exceed 260 chars")
 	}
 
 	chatID := GenID()
@@ -52,13 +46,12 @@ func CreateChat(
 
 //
 
-func GetChat(
-	projID,
-	chatID string,
-) (
-	*Chat,
-	error,
-) {
+func GetChat(projID, chatID string) (*Chat, error) {
+
+	err := isChat(projID, chatID)
+	if err != nil {
+		return nil, err
+	}
 
 	project, err := GetProject(projID)
 	if err != nil {
@@ -71,17 +64,12 @@ func GetChat(
 		}
 	}
 
-	return nil, errors.New("failed to find chat with chatID")
+	return nil, errors.New("failed ds op")
 }
 
 //
 
-func ListChats(
-	projID string,
-) (
-	[]Chat,
-	error,
-) {
+func ListChats(projID string) ([]Chat, error) {
 
 	var chatArr []Chat
 
@@ -104,22 +92,16 @@ func ListChats(
 
 //
 
-func UpdateChat(
-	projID,
-	chatID string,
-	i Chat,
-) (
-	*Chat,
-	error,
-) {
+func UpdateChat(projID, chatID string, i Chat) (*Chat, error) {
 
 	var chatRes *Chat
+	var oldKey string
 
 	if projID == "" {
-		return nil, errors.New("projID is required")
+		return nil, errors.New("`projID` param is required")
 	}
 	if chatID == "" {
-		return nil, errors.New("chatID is required")
+		return nil, errors.New("`chatID` param is required")
 	}
 
 	proj, err := GetProject(projID)
@@ -137,7 +119,7 @@ func UpdateChat(
 		}
 	}
 	if chatIndex == -1 {
-		return nil, errors.New("chat not found with chatID")
+		return nil, errors.New("failed ds op")
 	}
 
 	if i.Name != "" {
@@ -156,14 +138,12 @@ func UpdateChat(
 	}
 
 	stamp := int(time.Now().UnixNano())
-
-	newKey := keygen(stamp, proj.ProjID)
-
 	proj.Chats[chatIndex].LastModified = stamp
+	newKey := keygen(stamp, proj.ProjID)
 
 	val, err := json.Marshal(proj)
 	if err != nil {
-		return nil, errors.New("failed to marshal proj")
+		return nil, errors.New("failed ds op")
 	}
 
 	meta, err := openMeta()
@@ -172,12 +152,8 @@ func UpdateChat(
 	}
 	defer (*meta).Close()
 
-	var oldKey string
-
-	err = (*meta).Scan([]byte(""), func(key bitcask.Key) error {
-
-		metaKey := string(key)
-
+	err = (*meta).Scan([]byte(""), func(k bitcask.Key) error {
+		metaKey := string(k)
 		projID, _, err := extractKey(metaKey)
 		if err == nil && projID == proj.ProjID {
 			oldKey = metaKey
@@ -185,17 +161,17 @@ func UpdateChat(
 		return nil
 	})
 	if err != nil || oldKey == "" {
-		return nil, errors.New("failed to find proj with projID")
+		return nil, errors.New("failed ds op")
 	}
 
 	err = (*meta).Delete([]byte(oldKey))
 	if err != nil {
-		return nil, errors.New("failed to delete old chat entity")
+		return nil, errors.New("failed ds op")
 	}
 
 	err = (*meta).Put([]byte(newKey), val)
 	if err != nil {
-		return nil, errors.New("failed to store new chat entity")
+		return nil, errors.New("failed ds op")
 	}
 
 	return chatRes, nil
@@ -203,18 +179,20 @@ func UpdateChat(
 
 //
 
-func DeleteChat(
-	projID,
-	chatID string,
-) error {
+func DeleteChat(projID, chatID string) error {
 
 	var project *Project
 
 	if projID == "" {
-		return errors.New("projID param is required")
+		return errors.New("`projID` param is required")
 	}
 	if chatID == "" {
-		return errors.New("chatID param is required")
+		return errors.New("`chatID` param is required")
+	}
+
+	err := isChat(projID, chatID)
+	if err != nil {
+		return err
 	}
 
 	meta, err := openMeta()
@@ -223,21 +201,19 @@ func DeleteChat(
 	}
 	defer (*meta).Close()
 
-	err = (*meta).Scan([]byte(""), func(key bitcask.Key) error {
-
-		metaKey := string(key)
-
+	err = (*meta).Scan([]byte(""), func(k bitcask.Key) error {
+		metaKey := string(k)
 		keyID, _, err := extractKey(metaKey)
 		if err == nil && keyID == projID {
 
-			data, err := (*meta).Get(key)
+			data, err := (*meta).Get(k)
 			if err != nil {
-				return errors.New("failed to find proj with projID")
+				return errors.New("failed ds op")
 			}
 
 			err = json.Unmarshal(data, &project)
 			if err != nil {
-				return errors.New("failed to unmarshal proj")
+				return errors.New("failed ds op")
 			}
 
 			for i, chat := range project.Chats {
@@ -248,27 +224,23 @@ func DeleteChat(
 					)
 					break
 				} else {
-					return errors.New("failed to find chat with chatID")
+					return errors.New("failed ds op")
 				}
 			}
 
 			val, err := json.Marshal(project)
 			if err != nil {
-				return errors.New("failed to marshal proj")
+				return errors.New("failed ds op")
 			}
 
-			err = (*meta).Put([]byte(key), val)
+			err = (*meta).Put([]byte(k), val)
 			if err != nil {
-				return errors.New("failed to store new proj")
+				return errors.New("failed ds op")
 			}
-
 			return nil
 		}
 		return nil
 	})
-	if project == nil {
-		return errors.New("proj returned nil")
-	}
 	if err != nil {
 		return err
 	} else {
