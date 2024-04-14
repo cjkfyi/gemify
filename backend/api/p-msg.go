@@ -22,7 +22,7 @@ func CreateMsg(
 	if err != nil {
 		data := map[string]interface{}{
 			"code":    store.ERR_Decode,
-			"message": "failed to decode msg input",
+			"message": "failed to decode input",
 		}
 		res := Response{
 			Command: "execCreateMsg",
@@ -36,13 +36,39 @@ func CreateMsg(
 	val, err := store.CreateMessage(chatID, projID, i.Message, i.IsUser)
 	if err != nil {
 		switch err.Error() {
-		case "failed to open chat ds",
-			"failed to marshal msg",
-			"failed to find proj with projID",
-			"failed to store msg":
+		case
+			"invalid `chatID` parameter",
+			"invalid `projID` parameter":
+			data := map[string]interface{}{
+				"code":    store.ERR_InvalidParam,
+				"message": err.Error(),
+			}
+			res := Response{
+				Command: "execCreateMsg",
+				Data:    data,
+				Status:  "error",
+			}
+			redFlag(w, http.StatusBadRequest, res)
+			return
+		case
+			"`message` field is required":
+			data := map[string]interface{}{
+				"code":    store.ERR_MissingInput,
+				"message": err.Error(),
+			}
+			res := Response{
+				Command: "execCreateMsg",
+				Data:    data,
+				Status:  "error",
+			}
+			redFlag(w, http.StatusBadRequest, res)
+			return
+		case
+			"failed ds op",
+			"failed to open chat ds":
 			data := map[string]interface{}{
 				"code":    store.ERR_Internal,
-				"message": err.Error(),
+				"message": "oops, something uhh...",
 			}
 			res := Response{
 				Command: "execCreateMsg",
@@ -78,12 +104,27 @@ func GetMsg(
 	message, err := store.GetMessage(projID, chatID, msgID)
 	if err != nil {
 		switch err.Error() {
-		case "failed to open chat ds",
-			"failed to pull msg with key",
-			"failed to unmarshal msg":
+		case
+			"invalid `msgID` parameter",
+			"invalid `chatID` parameter",
+			"invalid `projID` parameter":
+			data := map[string]interface{}{
+				"code":    store.ERR_InvalidParam,
+				"message": err.Error(),
+			}
+			res := Response{
+				Command: "execGetMsg",
+				Data:    data,
+				Status:  "error",
+			}
+			redFlag(w, http.StatusBadRequest, res)
+			return
+		case
+			"failed ds op",
+			"failed to open chat ds":
 			data := map[string]interface{}{
 				"code":    store.ERR_Internal,
-				"message": err.Error(),
+				"message": "oops, something uhh...",
 			}
 			res := Response{
 				Command: "execGetMsg",
@@ -118,15 +159,29 @@ func ListMsgs(
 	msgArr, err := store.ListMessages(chatID, projID)
 	if err != nil {
 		switch err.Error() {
-		case "failed to open chat ds",
-			"failed to pull msg with key",
-			"failed to unmarshal msg":
+		case
+			"invalid `chatID` parameter",
+			"invalid `projID` parameter":
 			data := map[string]interface{}{
-				"code":    store.ERR_Internal,
+				"code":    store.ERR_InvalidParam,
 				"message": err.Error(),
 			}
 			res := Response{
-				Command: "execListMessages",
+				Command: "execListMsgs",
+				Data:    data,
+				Status:  "error",
+			}
+			redFlag(w, http.StatusBadRequest, res)
+			return
+		case
+			"failed ds op",
+			"failed to open chat ds":
+			data := map[string]interface{}{
+				"code":    store.ERR_Internal,
+				"message": "oops, something uhh...",
+			}
+			res := Response{
+				Command: "execListMsgs",
 				Data:    data,
 				Status:  "error",
 			}
@@ -138,7 +193,7 @@ func ListMsgs(
 			"messages": msgArr,
 		}
 		res := Response{
-			Command: "execListMessages",
+			Command: "execListMsgs",
 			Data:    data,
 			Status:  "success",
 		}
@@ -178,7 +233,8 @@ func UpdateMsg(
 		switch err.Error() {
 		case
 			"invalid `chatID` parameter",
-			"invalid `projID` parameter":
+			"invalid `projID` parameter",
+			"invalid `msgID` parameter":
 			data := map[string]interface{}{
 				"code":    store.ERR_InvalidParam,
 				"message": err.Error(),
@@ -233,7 +289,8 @@ func DeleteMsg(
 		switch err.Error() {
 		case
 			"invalid `projID` parameter",
-			"invalid `chatID` parameter":
+			"invalid `chatID` parameter",
+			"invalid `msgID` parameter":
 			data := map[string]interface{}{
 				"code":    store.ERR_InvalidParam,
 				"message": err.Error(),

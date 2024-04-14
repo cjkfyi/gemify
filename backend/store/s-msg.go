@@ -19,9 +19,8 @@ func CreateMessage(
 	*Message,
 	error,
 ) {
-
 	if msg == "" {
-		return nil, errors.New("message input is required")
+		return nil, errors.New("`message` field is required")
 	}
 
 	msgID := GenID()
@@ -46,12 +45,12 @@ func CreateMessage(
 
 	val, err := json.Marshal(new)
 	if err != nil {
-		return nil, errors.New("failed to marshal msg")
+		return nil, errors.New("failed ds op")
 	}
 
 	err = (*chat).Put([]byte(key), val)
 	if err != nil {
-		return nil, errors.New("failed to store msg")
+		return nil, errors.New("failed ds op")
 	}
 
 	return new, nil
@@ -67,39 +66,36 @@ func GetMessage(
 	*Message,
 	error,
 ) {
-
 	var msg *Message
 
 	chat, err := openChat(projID, chatID)
 	if err != nil {
-		return nil, errors.New("failed to open chat ds")
+		return nil, err
 	}
 	defer (*chat).Close()
 
 	err = (*chat).Scan([]byte(""), func(key bitcask.Key) error {
-
-		strKey := string(key)
-
-		if strings.HasSuffix(strKey, msgID) {
+		chatKey := string(key)
+		if strings.HasSuffix(chatKey, msgID) {
 			data, err := (*chat).Get(key)
 			if err != nil {
-				return errors.New("failed to pull msg with key")
+				return errors.New("failed ds op")
 			}
 
 			err = json.Unmarshal(data, &msg)
 			if err != nil {
-				return errors.New("failed to unmarshal msg")
+				return errors.New("failed ds op")
 			}
-
 			return nil
 		}
 		return nil
 	})
 	if err != nil {
 		return nil, err
-	} else {
-		return msg, nil
+	} else if msg == nil {
+		return nil, errors.New("invalid `msgID` parameter")
 	}
+	return msg, nil
 }
 
 //
@@ -111,13 +107,11 @@ func ListMessages(
 	[]Message,
 	error,
 ) {
-
 	var msgArr []Message
-	var msg Message
 
 	chat, err := openChat(projID, chatID)
 	if err != nil {
-		return nil, errors.New("failed to open chat ds")
+		return nil, err
 	}
 	defer (*chat).Close()
 
@@ -125,12 +119,14 @@ func ListMessages(
 
 		data, err := (*chat).Get(key)
 		if err != nil {
-			return errors.New("failed to pull msg with key")
+			return errors.New("failed ds op")
 		}
+
+		var msg Message
 
 		err = json.Unmarshal(data, &msg)
 		if err != nil {
-			return errors.New("failed to unmarshal msg")
+			return errors.New("failed ds op")
 		}
 
 		msgArr = append(msgArr, msg)
@@ -138,14 +134,17 @@ func ListMessages(
 	})
 	if err != nil {
 		return nil, err
-	} else {
+	}
 
-		sort.Slice(msgArr, func(i, j int) bool {
-			return msgArr[i].LastModified < msgArr[j].LastModified
-		})
-
+	if msgArr == nil {
+		msgArr = []Message{}
 		return msgArr, nil
 	}
+
+	sort.Slice(msgArr, func(i, j int) bool {
+		return msgArr[i].LastModified < msgArr[j].LastModified
+	})
+	return msgArr, nil
 }
 
 //
@@ -186,7 +185,11 @@ func UpdateMessage(
 				return errors.New("failed ds op")
 			}
 
-			msg = i
+			if i.Message != "" {
+				msg.Message = i.Message
+			}
+			msg.IsUser = i.IsUser
+
 			msg.LastModified = int(time.Now().UnixNano())
 
 			val, err := json.Marshal(msg)
@@ -198,16 +201,17 @@ func UpdateMessage(
 			if err != nil {
 				return errors.New("failed ds op")
 			}
-
 			return nil
 		}
 		return nil
 	})
 	if err != nil {
 		return nil, err
-	} else {
-		return &msg, nil
+	} else if msg.MsgID == "" {
+		return nil, errors.New("invalid `msgID` parameter")
 	}
+
+	return &msg, nil
 }
 
 //
@@ -218,50 +222,33 @@ func DeleteMessage(
 	msgID string,
 ) error {
 
-	var msg Message
-	var key string
-
 	chat, err := openChat(projID, chatID)
 	if err != nil {
 		return err
 	}
 	defer (*chat).Close()
 
+	found := false
+
 	err = (*chat).Scan([]byte(""), func(k bitcask.Key) error {
-
 		chatKey := string(k)
-
 		if strings.HasSuffix(chatKey, msgID) {
-
-			key = chatKey
-
-			data, err := (*chat).Get([]byte(key))
-			if err != nil {
-				return errors.New("failed ds op")
-			}
-
-			err = json.Unmarshal(data, &msg)
-			if err != nil {
-				return errors.New("failed ds op")
-			}
-
-			msg.IsDeleted = true
-
-			val, err := json.Marshal(msg)
-			if err != nil {
-				return errors.New("failed ds op")
-			}
-
-			err = (*chat).Put([]byte(key), val)
+			found = true
+			err := (*chat).Delete([]byte(chatKey))
 			if err != nil {
 				return errors.New("failed ds op")
 			}
 			return nil
 		}
 		return nil
+		// else {
+		// 	return errors.New("invalid `msgID` parameter")
+		// }
 	})
 	if err != nil {
 		return err
+	} else if !found {
+		return errors.New("invalid `msgID` parameter")
 	} else {
 		return nil
 	}

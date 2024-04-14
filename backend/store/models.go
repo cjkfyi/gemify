@@ -24,7 +24,6 @@ type Message struct {
 	ChatID       string `json:"chatID"`
 	ProjID       string `json:"projID"`
 	IsUser       bool   `json:"isUser"`
-	IsDeleted    bool   `json:"isDeleted"`
 	Message      string `json:"message"`
 	LastModified int    `json:"lastModified"`
 	FirstCreated int    `json:"firstCreated"`

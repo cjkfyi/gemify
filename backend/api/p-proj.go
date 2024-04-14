@@ -34,8 +34,8 @@ func CreateProj(
 	if err != nil {
 		switch err.Error() {
 		case
-			"`name` param is required",
-			"`desc` param is required":
+			"`name` field is required",
+			"`desc` field is required":
 			data := map[string]interface{}{
 				"code":    store.ERR_MissingInput,
 				"message": err.Error(),

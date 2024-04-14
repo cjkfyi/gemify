@@ -14,13 +14,13 @@ import (
 func CreateProject(i *Project) (*Project, error) {
 
 	if i.Name == "" {
-		return nil, errors.New("`name` param is required")
+		return nil, errors.New("`name` field is required")
 	} else if len(i.Name) > 160 {
 		return nil, errors.New("`name` cannot exceed 160 chars")
 	}
 
 	if i.Desc == "" {
-		return nil, errors.New("`desc` param is required")
+		return nil, errors.New("`desc` field is required")
 	} else if len(i.Desc) > 260 {
 		return nil, errors.New("`desc` cannot exceed 260 chars")
 	}
