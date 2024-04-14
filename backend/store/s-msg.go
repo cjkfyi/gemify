@@ -241,9 +241,6 @@ func DeleteMessage(
 			return nil
 		}
 		return nil
-		// else {
-		// 	return errors.New("invalid `msgID` parameter")
-		// }
 	})
 	if err != nil {
 		return err

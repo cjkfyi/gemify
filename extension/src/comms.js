@@ -34,8 +34,8 @@ async function sendNewConvo() {
     return data;
 };
 
-async function getConvoList() {
-    const res = await fetch('http://localhost:8000/chat/list', {
+async function getProjList() {
+    const res = await fetch('http://localhost:8080/projects', {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json'
@@ -53,5 +53,5 @@ async function getConvoList() {
 export {
     sendGemifyMsg,
     sendNewConvo,
-    getConvoList,
+    getProjList,
 };

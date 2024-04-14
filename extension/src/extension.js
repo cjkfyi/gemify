@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import store from './store';
 import {
     sendNewConvo,
-    getConvoList,
+    getProjList,
     sendGemifyMsg
 } from './comms';
 
@@ -31,11 +31,11 @@ function activate(context) {
 
         gemify.webview.onDidReceiveMessage(msg => {
             switch (msg.command) {
-                case 'execConvoList':
-                    getConvoList()
+                case 'execProjList':
+                    getProjList()
                         .then(res => {
                             gemify.webview.postMessage({
-                                command: 'returnConvoList',
+                                command: 'returnProjList',
                                 data: res.data,
                             });
                         })
@@ -43,40 +43,51 @@ function activate(context) {
                             console.error(err)
                         })
                     break;
-                case 'execConvoView':
-                    const convoID = msg.data
 
-                    store.getState().setActiveConvoId(convoID)
+                case 'execNewProjView':
                     gemify.webview.postMessage({
-                        command: 'returnConvoView',
-                        data: convoID,
+                        command: 'returnNewProjView',
                     });
                     break;
-                case 'execHomeView':
-                    store.getState().setActiveConvoId(null)
-                    break;
-                case 'execNewConvo':
-                    sendNewConvo()
-                        .then(res => {
-                            const convoId = res.data.convoID;
-                            store.getState().setActiveConvoId(convoId)
-                        })
-                        .catch(err => {
-                            console.error(err)
-                        })
-                    break;
-                case 'execNewMsg':
-                    const id = store.getState().activeConvoId;
-                    sendGemifyMsg(msg.message, id, (chunk) => {
-                        gemify.webview.postMessage({
-                            command: 'returnMsg',
-                            data: chunk,
-                        });
-                    });
-                    break;
-                case 'execReturnHome':
-                    store.getState().setActiveConvoId(null)
-                    break;
+
+                // case 'execConvoView':
+                //     const convoID = msg.data
+                //     store.getState().setActiveConvoId(convoID)
+                //     gemify.webview.postMessage({
+                //         command: 'returnConvoView',
+                //         data: convoID,
+                //     });
+                //     break;
+
+
+                // case 'execHomeView':
+                //     store.getState().setActiveConvoId(null)
+                //     break;
+                    
+                // case 'execNewConvo':
+                //     sendNewConvo()
+                //         .then(res => {
+                //             const convoId = res.data.convoID;
+                //             store.getState().setActiveConvoId(convoId)
+                //         })
+                //         .catch(err => {
+                //             console.error(err)
+                //         })
+                //     break;
+
+                // case 'execNewMsg':
+                //     const id = store.getState().activeConvoId;
+                //     sendGemifyMsg(msg.message, id, (chunk) => {
+                //         gemify.webview.postMessage({
+                //             command: 'returnMsg',
+                //             data: chunk,
+                //         });
+                //     });
+                //     break;
+
+                // case 'execReturnHome':
+                //     store.getState().setActiveConvoId(null)
+                //     break;
             }
         });
     });

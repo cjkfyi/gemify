@@ -8,39 +8,18 @@ let test = '';
 
 // ℹ️: Communicate early
 vscode.postMessage({
-    command: 'execConvoList',
+    command: 'execProjList',
 });
 
-// ℹ️: Wait for DOM, before attempting anything element-wise
-document.addEventListener('DOMContentLoaded', function () {
-    const sendMsgBtn = document.getElementById('sendBtn');
-    const msgInput = document.getElementById('msgInput');
-
-    sendMsgBtn.addEventListener('click', function () {
-        const msg = msgInput.value;
-        msgInput.value = '';
-
-        renderUsrMsg(msg);
-
-        vscode.postMessage({
-            command: 'execNewMsg',
-            message: msg,
-        });
-    });
-});
 
 // ℹ️: Listen for new messages, act upon
 window.addEventListener('message', e => {
     const msg = e.data;
 
     switch (msg.command) {
-        case 'returnConvoList':
-            var arr = msg.data.conversations;
-            listRecentConvos(arr);
-            break;
-            
-        case 'returnConvoView':
-            reopenConvoView();
+        case 'returnProjList':
+            var arr = msg.data.projects;
+            listRecentProjs(arr);
             break;
 
         case 'returnMsg':
@@ -53,14 +32,33 @@ window.addEventListener('message', e => {
     }
 });
 
+// ℹ️: Wait for DOM, before attempting anything element-wise
+// document.addEventListener('DOMContentLoaded', function () {
+//     const sendMsgBtn = document.getElementById('send-btn');
+//     const msgInput = document.getElementById('msg-input');
+
+//     sendMsgBtn.addEventListener('click', function () {
+//         const msg = msgInput.value;
+//         msgInput.value = '';
+
+//         renderUsrMsg(msg);
+
+//         vscode.postMessage({
+//             command: 'execNewMsg',
+//             message: msg,
+//         });
+//     });
+// });
+
+
 function streamGeminiRes() {
-    
+
     if (resChunkQueue.length === 0) {
         resInProg = false;
         return;
     };
 
-    const area = document.getElementById('convoArea');
+    const area = document.getElementById('convo-area');
     let resEl = document.querySelector('.message.bot.streaming');
     if (!resEl) {
         resEl = document.createElement('div');
@@ -79,15 +77,15 @@ function streamGeminiRes() {
         resEl.innerHTML = htmlContent;
         // const htmlContent = processMD(test)
         // resEl.innerHTML = htmlContent
-        test = ''; 
+        test = '';
         return;
     } else {
-        test += chunk;  
+        test += chunk;
     }
-    
+
     let messageContent;
-    messageContent = chunk; 
-    
+    messageContent = chunk;
+
     let currentIndex = 0;
     const animationInterval = 10;
 
@@ -109,7 +107,7 @@ function streamGeminiRes() {
 //
 
 function renderUsrMsg(text) {
-    const convoArea = document.getElementById('convoArea');
+    const convoArea = document.getElementById('convo-area');
     const messageElement = document.createElement('div');
     messageElement.classList.add('message');
     messageElement.classList.add('user');
@@ -120,7 +118,7 @@ function renderUsrMsg(text) {
 
 //
 
-function listRecentConvos(list) {
+function listRecentProjs(list) {
     const convoListEl = document.getElementById('convo-list');
 
     // Breaks if doesn't exist
@@ -133,16 +131,34 @@ function listRecentConvos(list) {
     const displayCount = 4;
     const displayConversations = list.slice(0, displayCount);
 
-    displayConversations.forEach((convo, index) => {
+    displayConversations.forEach((proj, index) => {
+        // Create Tile Elements
         const listItem = document.createElement('li');
-        listItem.textContent = convo.title;
-        listItem.id = `convo-item-${index}`;
+        const tileLink = document.createElement('a');
+        const tileName = document.createElement('h3');
+        const tileDesc = document.createElement('p');
+
+        // Add Styling Classes
+        listItem.classList.add('convo-tile');
+        tileLink.classList.add('convo-tile-link');
+        tileName.classList.add('convo-tile-name');
+        tileDesc.classList.add('convo-tile-desc');
+
+        // Populate Tile Content
+        tileName.textContent = proj.name;
+        tileDesc.textContent = proj.desc;
+
+        // Assemble Tile 
+        tileLink.href = '#';
+        tileLink.appendChild(tileName);
+        tileLink.appendChild(tileDesc);
+        listItem.appendChild(tileLink);
         convoListEl.appendChild(listItem);
 
         listItem.addEventListener('click', () => {
             vscode.postMessage({
                 command: 'execConvoView',
-                data: convo.id,
+                data: proj.projID,
             });
         });
     });
@@ -151,27 +167,25 @@ function listRecentConvos(list) {
 //
 
 function newProjectAction() {
-    // ℹ️: Will grow complex 
-
     vscode.postMessage({
-        command: 'execNewConvo',
+        command: 'execNewProj',
     });
-    document.getElementById('homeView').style.display = 'none';
-    // ℹ️: Hide all views, but the specific one needed rendered
-    document.getElementById('convoView').style.display = 'flex';
+    document.getElementById('home-view').style.display = 'none';
+    document.getElementById('new-proj-view').style.display = 'flex';
 };
 
 function returnHome() {
     vscode.postMessage({
         command: 'execReturnHome',
     });
-    document.getElementById('convoView').style.display = 'none';
-    // ℹ️: Hide all views, but the specific one needed rendered
-    document.getElementById('homeView').style.display = 'flex';
+    // document.getElementById('project-view').style.display = 'none';
+    document.getElementById('new-proj-view').style.display = 'none';
+    //
+    document.getElementById('home-view').style.display = 'flex';
 };
 
-function reopenConvoView() {
-    document.getElementById('homeView').style.display = 'none';
-    // ℹ️: Hide all views, but the specific one needed rendered
-    document.getElementById('convoView').style.display = 'flex';
-};
+// function reopenConvoView() {
+//     document.getElementById('home-view').style.display = 'none';
+//     //
+//     // document.getElementById('convo-view').style.display = 'flex';
+// };

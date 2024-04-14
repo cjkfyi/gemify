@@ -1,8 +1,9 @@
 /* 
-... Home View
+// HOME
 */
-#homeView,
-#convoView {
+#home-view,
+#new-proj-view,
+#convo-view {
     margin: 0;
     display: flex;
     flex-direction: column;
@@ -19,7 +20,7 @@ main {
     flex: 1;
 }
 
-#headerCont {
+#header-cont {
     height: 66px;
 }
 
@@ -42,12 +43,67 @@ main {
     font-weight: 600;
 }
 
-#convo-list li:hover {
-    color: rgb(151, 151, 151); /* Example hover style */
-    cursor: pointer;
+/* 
+
+*/
+
+#convo-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
 }
 
-#newConvoBtn {
+.convo-tile {
+    border: 1px solid lightgray;
+    border-radius: 8px;
+    padding: 15px;
+    text-align: left;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.convo-tile-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+}
+
+.convo-tile-link:hover .convo-tile-content {
+    text-decoration: underline;
+}
+
+.convo-tile-name {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 5px;
+    font-family: monospace;
+}
+
+.convo-tile-desc {
+    font-size: 0.9em;
+    line-height: 1.2;
+}
+
+@media (max-width: 800px) { 
+    #convo-list {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+
+    .convo-tile {
+         padding: 20px;
+    }
+}
+
+@media (max-width: 600px) {
+    #convo-list {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* 
+
+*/
+
+#new-proj-btn {
     width: calc(100%);
     height: 50px;
     border: none;
@@ -59,7 +115,7 @@ main {
     cursor: pointer;
     font-family: 'Inter', sans-serif; 
 }
-#newConvoBtn:hover {
+#new-proj-btn:hover {
     background-color: #1b1f25;
 }
 
@@ -67,32 +123,32 @@ main {
 ... Conversation View
 */
 
-#convoHeader {
+#convo-header {
     height: 66px;
     display: flex;
     align-items: center;
     justify-content: flex-start;
 }
 
-#backButton {
+#back-button {
     font-size: 20px;
     padding: 9px;
 }
 
-#convoTitle {
+#convo-title {
     margin: 0;
     font-size: 26px;
     margin-left: 20px;
 }
 
-#convoArea {
+#convo-area {
     display: flex;
     flex-direction: column;
     white-space: pre-line; 
     overflow-y: auto;
 }
 
-#convoFooter {
+#convo-footer {
     display: flex;
     align-items: flex-end;
 }
@@ -102,11 +158,16 @@ main {
     width: 100%;
 }
 
-#messageInput {
+#msg-input {
     flex: 1;
     padding: 10px;
     border: 1px solid #ccc;
     font-size: 16px;
+}
+
+#msg-input {
+    width: 100%;
+    height: 40px;
 }
 
 .buttons {
@@ -130,7 +191,7 @@ main {
     word-wrap: break-word;
 }
 
-.conversationArea {
+.conversation-area {
     display: flex;
     flex-direction: column;
 }
@@ -146,7 +207,3 @@ main {
     align-self: flex-start;
 }
 
-#msgInput {
-    width: 100%;
-    height: 40px;
-}

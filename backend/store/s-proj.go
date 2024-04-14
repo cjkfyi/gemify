@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 	"path"
+	"sort"
 	"strings"
 	"time"
 
@@ -127,6 +128,10 @@ func ListProjects() ([]Project, error) {
 	if err != nil {
 		return nil, err
 	} else {
+		sort.Slice(projArr, func(i, j int) bool {
+			return projArr[i].LastModified > projArr[j].LastModified
+		})
+
 		return projArr, nil
 	}
 }

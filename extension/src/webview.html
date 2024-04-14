@@ -2,9 +2,9 @@
 <!-- Home View -->
 <!--           -->
 
-<div id="homeView">
-    <header id="homeHeader">
-        <div id="headerCont">
+<div id="home-view">
+    <header id="home-header">
+        <div id="header-cont">
             <h1 id="title">
                 GEMIFY
             </h1>
@@ -23,11 +23,36 @@
     
     <footer>
         <button 
-            id="newConvoBtn"
+            id="new-proj-btn"
             onclick="newProjectAction()" 
         >
             New Project
         </button>
+    </footer>
+</div>
+
+<!--                  -->
+<!-- New Project View -->
+<!--                  -->
+
+<div 
+    id="new-proj-view" 
+    style="display: none;"
+>
+    <header id="convo-header">
+        <button 
+            id="back-button" 
+            onclick="returnHome()"
+        >
+            <-
+        </button>
+        <h1 id="convo-title">New Project</h1> 
+    </header>
+
+    <main id="convo-area"></main>
+
+    <footer id="convo-footer">
+
     </footer>
 </div>
 
@@ -36,25 +61,25 @@
 <!--            -->
 
 <div 
-    id="convoView" 
+    id="convo-view" 
     style="display: none;"
 >
-    <header id="convoHeader">
+    <header id="convo-header">
         <button 
-            id="backButton" 
+            id="back-button" 
             onclick="returnHome()"
         >
             <-
         </button>
-        <h1 id="convoTitle">Title</h1> 
+        <h1 id="convo-title">Title</h1> 
     </header>
 
-    <main id="convoArea"></main>
+    <main id="convo-area"></main>
 
-    <footer id="convoFooter">
+    <footer id="convo-footer">
         <div class="input-container">
             <input 
-                id="msgInput"
+                id="msg-input"
                 type="text"  
                 placeholder="Type your message..."
             />
