@@ -24,6 +24,32 @@ func openMeta() (
 	return &meta, nil
 }
 
+//
+
+func OpenMeta(
+	projID string,
+) (
+	*bitcask.DB,
+	error,
+) {
+	err := isProj(projID)
+	if err != nil {
+		return nil, err
+	} else {
+		meta, err := bitcask.Open(
+			path.Join(dataPath, "meta"),
+		)
+		if err != nil {
+			return nil, errors.New(
+				"failed to open meta ds",
+			)
+		}
+		return &meta, nil
+	}
+}
+
+//
+
 func openChat(
 	projID,
 	chatID string,
@@ -47,6 +73,8 @@ func openChat(
 	}
 	return &chat, nil
 }
+
+//
 
 func updateProject(
 	i *Project,

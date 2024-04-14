@@ -11,23 +11,18 @@ import (
 	"go.mills.io/bitcask/v2"
 )
 
-func CreateProject(
-	i *Project,
-) (
-	*Project,
-	error,
-) {
+func CreateProject(i *Project) (*Project, error) {
 
 	if i.Name == "" {
-		return nil, errors.New("name param is required")
+		return nil, errors.New("`name` param is required")
 	} else if len(i.Name) > 160 {
-		return nil, errors.New("name cannot exceed 160 chars")
+		return nil, errors.New("`name` cannot exceed 160 chars")
 	}
 
 	if i.Desc == "" {
-		return nil, errors.New("desc param is required")
+		return nil, errors.New("`desc` param is required")
 	} else if len(i.Desc) > 260 {
-		return nil, errors.New("desc cannot exceed 260 chars")
+		return nil, errors.New("`desc` cannot exceed 260 chars")
 	}
 
 	projID := GenID()
@@ -40,12 +35,12 @@ func CreateProject(
 
 	projPath := path.Join(dataPath, projID)
 	if err := os.Mkdir(projPath, 0755); err != nil {
-		return nil, errors.New("failed to mk the proj dir")
+		return nil, errors.New("failed ds op")
 	}
 
 	val, err := json.Marshal(i)
 	if err != nil {
-		return nil, errors.New("failed to marshal proj")
+		return nil, errors.New("failed ds op")
 	}
 
 	key := keygen(stamp, projID)
@@ -57,7 +52,7 @@ func CreateProject(
 	defer (*meta).Close()
 
 	if err := (*meta).Put([]byte(key), val); err != nil {
-		return nil, errors.New("failed to store proj in meta ds")
+		return nil, errors.New("failed ds op")
 	}
 
 	return i, nil
@@ -65,61 +60,42 @@ func CreateProject(
 
 //
 
-func GetProject(
-	projID string,
-) (
-	*Project,
-	error,
-) {
+func GetProject(projID string) (*Project, error) {
 
 	var proj *Project
 
-	meta, err := openMeta()
+	meta, err := OpenMeta(projID)
 	if err != nil {
 		return nil, err
 	}
 	defer (*meta).Close()
 
-	err = (*meta).Scan([]byte(""), func(key bitcask.Key) error {
-
-		strKey := string(key)
-
-		parts := strings.Split(strKey, ":")
+	err = (*meta).Scan([]byte(""), func(k bitcask.Key) error {
+		metaKey := string(k)
+		parts := strings.Split(metaKey, ":")
 		if len(parts) == 2 && parts[1] == projID {
-
-			data, err := (*meta).Get(key)
+			data, err := (*meta).Get(k)
 			if err != nil {
-				return errors.New("failed to find proj with projID")
+				return errors.New("failed ds op")
 			}
-
 			err = json.Unmarshal(data, &proj)
 			if err != nil {
-				return errors.New("failed to unmarshal proj")
+				return errors.New("failed ds op")
 			}
-
 			return nil
 		}
 		return nil
 	})
-
 	if err != nil {
 		return nil, err
 	} else {
-
-		if proj == nil {
-			return nil, errors.New("proj returned nil")
-		}
-
 		return proj, nil
 	}
 }
 
 //
 
-func ListProjects() (
-	[]Project,
-	error,
-) {
+func ListProjects() ([]Project, error) {
 
 	var projArr []Project
 
@@ -129,82 +105,65 @@ func ListProjects() (
 	}
 	defer (*meta).Close()
 
-	err = (*meta).Scan([]byte(""), func(key bitcask.Key) error {
-
-		strKey := string(key)
-
-		data, err := (*meta).Get([]byte(strKey))
+	err = (*meta).Scan([]byte(""), func(k bitcask.Key) error {
+		metaKey := string(k)
+		data, err := (*meta).Get([]byte(metaKey))
 		if err != nil {
-			return errors.New("failed to get pair in meta ds")
+			return errors.New("failed ds op")
 		}
-
 		var project Project
-
 		err = json.Unmarshal(data, &project)
 		if err != nil {
-			return errors.New("failed to unmarshal proj")
+			return errors.New("failed ds op")
 		}
-
 		projArr = append(projArr, project)
-
 		return nil
 	})
+
+	if projArr == nil {
+		projArr = []Project{}
+	}
 
 	if err != nil {
 		return nil, err
 	} else {
-		if projArr == nil {
-			projArr = []Project{}
-		}
 		return projArr, nil
 	}
 }
 
 //
 
-func UpdateProject(
-	projID string,
-	i Project,
-) (
-	*Project,
-	error,
-) {
+func UpdateProject(projID string, i Project) (*Project, error) {
 
 	var oldKey string
 
-	if projID == "" {
-		return nil, errors.New("projID param is required")
-	}
-
-	project, err := GetProject(projID)
+	proj, err := GetProject(projID)
 	if err != nil {
 		return nil, err
 	}
 
 	stamp := int(time.Now().UnixNano())
-
-	project.LastModified = stamp
+	key := keygen(stamp, proj.ProjID)
+	proj.LastModified = stamp
 
 	if i.Name != "" {
 		if len(i.Name) > 160 {
 			return nil, errors.New("name cannot exceed 160 chars")
 		} else {
-			project.Name = i.Name
+			proj.Name = i.Name
 		}
 	}
 	if i.Desc != "" {
 		if len(i.Desc) > 260 {
 			return nil, errors.New("desc cannot exceed 260 chars")
 		} else {
-			project.Desc = i.Desc
+			proj.Desc = i.Desc
 		}
 	}
 
-	key := keygen(stamp, project.ProjID)
-
-	val, err := json.Marshal(project)
+	val, err := json.Marshal(proj)
 	if err != nil {
-		return nil, errors.New("failed to marshal updated proj")
+		return nil, errors.New("failed ds op")
 	}
 
 	meta, err := openMeta()
@@ -214,74 +173,60 @@ func UpdateProject(
 	defer (*meta).Close()
 
 	err = (*meta).Scan([]byte(""), func(k bitcask.Key) error {
-
 		metaKey := string(k)
-
 		projID, _, err := extractKey(metaKey)
-		if err == nil && projID == project.ProjID {
+		if err == nil && projID == proj.ProjID {
 			oldKey = metaKey
 		}
 		return nil
 	})
 	if err != nil || oldKey == "" {
-		return nil, errors.New("failed to scan meta ds for key")
+		return nil, errors.New("failed ds op")
 	}
 
 	err = (*meta).Delete([]byte(oldKey))
 	if err != nil {
-		return nil, errors.New("failed to delete old proj entry")
+		return nil, errors.New("failed ds op")
 	}
 
 	err = (*meta).Put([]byte(key), val)
 	if err != nil {
-		return nil, errors.New("failed to store new proj entry")
+		return nil, errors.New("failed ds op")
 	}
 
-	if project == nil {
-		return nil, errors.New("proj returned nil")
-	} else {
-		return project, nil
-	}
+	return proj, nil
 }
 
 //
 
-func DeleteProject(
-	projID string,
-) error {
+func DeleteProject(projID string) error {
 
 	var key string
 
-	if projID == "" {
-		return errors.New("projID param is required")
-	}
-
-	meta, err := openMeta()
+	meta, err := OpenMeta(projID)
 	if err != nil {
 		return err
 	}
 	defer (*meta).Close()
 
 	err = (*meta).Scan([]byte(""), func(k bitcask.Key) error {
-
 		metaKey := string(k)
-
 		keyID, _, err := extractKey(metaKey)
 		if err == nil && keyID == projID {
-
 			key = metaKey
-
 			return nil
 		}
 		return nil
 	})
-	if err != nil || key == "" {
-		return errors.New("failed to find proj with projID")
+	if key == "" {
+		return errors.New("invalid projID parameter")
+	} else if err != nil {
+		return errors.New("failed ds op")
 	}
 
 	err = (*meta).Delete([]byte(key))
 	if err != nil {
-		return errors.New("failed to del proj entry")
+		return errors.New("failed ds op")
 	} else {
 		return nil
 	}

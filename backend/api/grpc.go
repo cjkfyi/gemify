@@ -18,16 +18,10 @@ type server struct {
 	pb.UnimplementedGemifyServer
 }
 
-func getRole(isUser bool) string {
-	if isUser {
-		return "user"
-	} else {
-		return "model"
-	}
-}
-
 func SetupGRPC() (
-	*grpc.Server, net.Listener, string, error,
+	*grpc.Server,
+	net.Listener,
+	string, error,
 ) {
 
 	var addr = fmt.Sprintf(

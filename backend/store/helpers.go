@@ -25,7 +25,7 @@ func isProj(projID string) error {
 	_, err := os.Stat(path)
 	if os.IsNotExist(err) {
 		return errors.New(
-			"projID is invalid",
+			"invalid projID parameter",
 		)
 	} else {
 		return nil
@@ -39,13 +39,13 @@ func isChat(projID, chatID string) error {
 	_, err := os.Stat(projPath)
 	if os.IsNotExist(err) {
 		return errors.New(
-			"projID is invalid",
+			"invalid projID parameter",
 		)
 	} else {
 		_, err := os.Stat(chatPath)
 		if os.IsNotExist(err) {
 			return errors.New(
-				"chatID is invalid",
+				"invalid chatID parameter",
 			)
 		} else {
 			return nil

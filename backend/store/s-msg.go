@@ -40,7 +40,7 @@ func CreateMessage(
 
 	chat, err := openChat(projID, chatID)
 	if err != nil {
-		return nil, errors.New("failed to open chat ds")
+		return nil, err
 	}
 	defer (*chat).Close()
 

@@ -2,10 +2,11 @@ package api
 
 import (
 	"encoding/json"
-	"gemify/store"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+
+	"gemify/store"
 )
 
 func CreateMsg(w http.ResponseWriter, r *http.Request) {

@@ -32,6 +32,14 @@ var (
 	}
 )
 
+func getRole(isUser bool) string {
+	if isUser {
+		return "user"
+	} else {
+		return "model"
+	}
+}
+
 func init() {
 	flag.Parse()
 
@@ -42,7 +50,7 @@ func init() {
 
 	API_KEY := os.Getenv("API_KEY")
 	if API_KEY == "" {
-		log.Fatal("the API_KEY was not found in .env")
+		log.Fatal("API_KEY was not found in .env")
 	}
 
 	ctx := context.Background()
