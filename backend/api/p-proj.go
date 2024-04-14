@@ -23,7 +23,7 @@ func CreateProj(
 			"message": "failed to decode input",
 		}
 		res := Response{
-			Command: "execCreateProject",
+			Command: "execCreateProj",
 			Data:    data,
 			Status:  "error",
 		}
@@ -41,7 +41,7 @@ func CreateProj(
 				"message": err.Error(),
 			}
 			res := Response{
-				Command: "execCreateProject",
+				Command: "execCreateProj",
 				Data:    data,
 				Status:  "error",
 			}
@@ -54,7 +54,7 @@ func CreateProj(
 				"message": err.Error(),
 			}
 			res := Response{
-				Command: "execCreateProject",
+				Command: "execCreateProj",
 				Data:    data,
 				Status:  "error",
 			}
@@ -67,7 +67,7 @@ func CreateProj(
 				"message": err.Error(),
 			}
 			res := Response{
-				Command: "execCreateProject",
+				Command: "execCreateProj",
 				Data:    data,
 				Status:  "error",
 			}
@@ -79,7 +79,7 @@ func CreateProj(
 			"project": proj,
 		}
 		res := Response{
-			Command: "execCreateProject",
+			Command: "execCreateProj",
 			Data:    data,
 			Status:  "success",
 		}
@@ -105,7 +105,7 @@ func GetProj(
 				"message": err.Error(),
 			}
 			res := Response{
-				Command: "execGetProject",
+				Command: "execGetProj",
 				Data:    data,
 				Status:  "error",
 			}
@@ -118,7 +118,7 @@ func GetProj(
 				"message": err.Error(),
 			}
 			res := Response{
-				Command: "execGetProject",
+				Command: "execGetProj",
 				Data:    data,
 				Status:  "error",
 			}
@@ -130,7 +130,7 @@ func GetProj(
 			"project": project,
 		}
 		res := Response{
-			Command: "execGetProject",
+			Command: "execGetProj",
 			Data:    data,
 			Status:  "success",
 		}
@@ -155,7 +155,7 @@ func ListProjs(
 				"message": err.Error(),
 			}
 			res := Response{
-				Command: "execListProjects",
+				Command: "execListProjs",
 				Data:    data,
 				Status:  "error",
 			}
@@ -167,7 +167,7 @@ func ListProjs(
 			"projects": projects,
 		}
 		res := Response{
-			Command: "execListProjects",
+			Command: "execListProjs",
 			Data:    data,
 			Status:  "success",
 		}
@@ -193,7 +193,7 @@ func UpdateProj(
 			"message": "failed to decode input",
 		}
 		res := Response{
-			Command: "execUpdateProject",
+			Command: "execUpdateProj",
 			Data:    errData,
 			Status:  "error",
 		}
@@ -210,7 +210,7 @@ func UpdateProj(
 				"message": err.Error(),
 			}
 			res := Response{
-				Command: "execUpdateProject",
+				Command: "execUpdateProj",
 				Data:    data,
 				Status:  "error",
 			}
@@ -224,7 +224,7 @@ func UpdateProj(
 				"message": err.Error(),
 			}
 			res := Response{
-				Command: "execUpdateProject",
+				Command: "execUpdateProj",
 				Data:    data,
 				Status:  "error",
 			}
@@ -238,7 +238,7 @@ func UpdateProj(
 				"message": err.Error(),
 			}
 			res := Response{
-				Command: "execUpdateProject",
+				Command: "execUpdateProj",
 				Data:    data,
 				Status:  "error",
 			}
@@ -250,7 +250,7 @@ func UpdateProj(
 			"project": proj,
 		}
 		res := Response{
-			Command: "execUpdateProject",
+			Command: "execUpdateProj",
 			Data:    data,
 			Status:  "success",
 		}
@@ -276,7 +276,7 @@ func DeleteProj(
 				"message": err.Error(),
 			}
 			res := Response{
-				Command: "execDeleteProject",
+				Command: "execDeleteProj",
 				Data:    data,
 				Status:  "error",
 			}
@@ -289,7 +289,7 @@ func DeleteProj(
 				"message": err.Error(),
 			}
 			res := Response{
-				Command: "execDeleteProject",
+				Command: "execDeleteProj",
 				Data:    data,
 				Status:  "error",
 			}
@@ -301,7 +301,7 @@ func DeleteProj(
 			"deleted": true,
 		}
 		res := Response{
-			Command: "execDeleteProject",
+			Command: "execDeleteProj",
 			Data:    data,
 			Status:  "success",
 		}
