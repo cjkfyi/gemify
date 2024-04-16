@@ -50,6 +50,30 @@ function activate(context) {
                     });
                     break;
 
+
+                case 'execSelProjView':
+                    const proj = msg.data
+
+                    store.getState().setActiveConvoId(proj)
+                    
+                    gemify.webview.postMessage({
+                        command: 'returnSelProjView',
+                        data: proj,
+                    });
+                    break;
+
+                case 'execReturnHome':
+                    store.getState().setActiveConvoId(null)
+                    break;
+
+                // case 'execNewProj':
+                //     gemify.webview.postMessage({
+                //         command: 'returnNewProj',
+                //     });
+                //     break;
+
+
+
                 // case 'execConvoView':
                 //     const convoID = msg.data
                 //     store.getState().setActiveConvoId(convoID)
@@ -63,7 +87,7 @@ function activate(context) {
                 // case 'execHomeView':
                 //     store.getState().setActiveConvoId(null)
                 //     break;
-                    
+
                 // case 'execNewConvo':
                 //     sendNewConvo()
                 //         .then(res => {
@@ -85,15 +109,12 @@ function activate(context) {
                 //     });
                 //     break;
 
-                // case 'execReturnHome':
-                //     store.getState().setActiveConvoId(null)
-                //     break;
             }
         });
     });
 
     context.subscriptions.push(launch);
-}
+};
 
 function loadWebviewResources(context, gemify) {
 
@@ -145,11 +166,11 @@ function loadWebviewResources(context, gemify) {
             ${html}
         </body>
     </html>`;
-}
+};
 
 function deactivate() { }
 
 module.exports = {
     activate,
     deactivate
-}
+};

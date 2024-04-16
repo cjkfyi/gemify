@@ -4,9 +4,15 @@
 
 ## 🤔
 
-I'm prototyping a multi-turn conversational extension for VSCode. After being fed-up with having to Copy and Paste my code, back-and-forth a million times, for a more current understanding every turn... `gemify` was suddenly born. 
+I'm prototyping a multi-turn, conversational extension for VSCode. After being fed-up with having to Copy and Paste my code, back-and-forth a million times, for a more current understanding every turn. Thus, `gemify` was suddenly born. 
 
-This is in early development, but steadily shaping. As of v1.0.1, the backend has been crafted well-enough, attention and effort will be oriented around getting the frontend all caught-up.
+## ✨
+
+Hereby my pledge to maintain this repo. Planning to scale, especially as goog figures out the unlimited token ordeal! Simply imagine the near-future.
+
+## 📸
+
+:D
 
 ## 🧰
 
@@ -15,7 +21,7 @@ This is in early development, but steadily shaping. As of v1.0.1, the backend ha
 - Well-orchestrated H/2 Proxy & gRPC server.
 - Utilizing `bitcask` & `bitio` for our storage.
 - Custom logger and improved err handling. (🔜™️)
-
+s
 ```go
 require (
 	github.com/go-chi/chi/v5               v5.0.12

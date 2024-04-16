@@ -2,7 +2,10 @@
 // HOME
 */
 #home-view,
+#settings-view,
 #new-proj-view,
+#chat-view,
+#new-chat-view,
 #convo-view {
     margin: 0;
     display: flex;
@@ -21,15 +24,15 @@ main {
 }
 
 #header-cont {
-    height: 66px;
+    height: 56px;
 }
 
 #title {
     color: white;
     margin: auto;
-    font-size: 56px;
-    font-weight: 600;
-    font-family: 'Inter', sans-serif; 
+    font-size: 50px;
+    font-weight: 400;
+    font-family: monospace; 
 }
 
 #subtitle {
@@ -56,20 +59,32 @@ main {
 .convo-tile {
     border: 1px solid lightgray;
     border-radius: 8px;
-    padding: 15px;
+    align-items: center;
+    /* padding: 25px; */
+    height: 126px;
     text-align: left;
+    display: flex;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+}
+.convo-tile:hover {
+    cursor: pointer;
 }
 
 .convo-tile-link {
-    display: block;
+    display: block; /* Existing rule - keep this */
     text-decoration: none;
     color: inherit;
+    width: 100%;     /* Fill the width of the tile */
+    height: 100%;    /* Fill the height of the tile */
+    display: flex;
+    padding: 30px;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .convo-tile-link:hover .convo-tile-content {
     text-decoration: underline;
-}
+} 
 
 .convo-tile-name {
     font-size: 1.2em;
@@ -89,7 +104,7 @@ main {
     }
 
     .convo-tile {
-         padding: 20px;
+        padding: 20px;
     }
 }
 

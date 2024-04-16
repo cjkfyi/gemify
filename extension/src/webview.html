@@ -10,21 +10,18 @@
             </h1>
         </div>
         <p id="subtitle">
-            Harness Google's <span>Gemini</span> here. 🌬️
+            First, choose a <span>Project</span> 🪨
         </p>
     </header>
 
     <main>
         <ul id="convo-list"></ul>
-        <!-- TODO: fix ⬇️ -->
-        </br>
-        <p>Show more...</p>
-     </main>
-    
+    </main>
+
     <footer>
         <button 
-            id="new-proj-btn"
-            onclick="newProjectAction()" 
+            id="new-proj-btn" 
+            onclick="newProjectBtn()"
         >
             New Project
         </button>
@@ -44,24 +41,33 @@
             id="back-button" 
             onclick="returnHome()"
         >
-            <-
+            <- 
         </button>
-        <h1 id="convo-title">New Project</h1> 
+        <h1 id="convo-title">
+            New Project
+        </h1>
     </header>
 
-    <main id="convo-area"></main>
+    <main id="convo-area">
+        TODO: this is where we'll have a form
+    </main>
 
     <footer id="convo-footer">
-
+        <button 
+            id="new-proj-btn" 
+            onclick="submitProjectAction()"
+        >
+            Create
+        </button>
     </footer>
 </div>
 
-<!--            -->
-<!-- Convo View -->
-<!--            -->
+<!--           -->
+<!-- Chat View -->
+<!--           -->
 
 <div 
-    id="convo-view" 
+    id="chat-view" 
     style="display: none;"
 >
     <header id="convo-header">
@@ -69,9 +75,78 @@
             id="back-button" 
             onclick="returnHome()"
         >
-            <-
+            <- 
         </button>
-        <h1 id="convo-title">Title</h1> 
+        <h1 id="convo-title">
+            {proj_name}
+        </h1>
+        <p id="subtitle">
+            Then choose a <span>Chat</span>
+            and carve your 💎
+        </p>
+    </header>
+
+    <main id="convo-area">
+        <p>TODO: here is where we'll list chats</p>
+    </main>
+
+    <footer id="convo-footer">
+        <button 
+            id="new-proj-btn" 
+            onclick="newChatAction()"
+        >
+            New Chat
+        </button>
+    </footer>
+</div>
+
+
+<!--               -->
+<!-- New Chat View -->
+<!--               -->
+
+<div id="new-chat-view" style="display: none;">
+    <header id="convo-header">
+        <button 
+            id="back-button" 
+            onclick="returnChat()"
+        >
+            <- 
+        </button>
+        <h1 id="convo-title">
+            New Chat
+        </h1>
+    </header>
+
+    <main id="convo-area">
+        TODO: this is where we'll have a form
+    </main>
+
+    <footer id="convo-footer">
+        <button 
+            id="new-proj-btn" 
+            onclick="submitChatAction()"
+        >
+            Create
+        </button>
+    </footer>
+</div>
+
+<!--            -->
+<!-- Convo View -->
+<!--            -->
+
+<div id="convo-view" style="display: none;">
+    <header id="convo-header">
+        <button 
+            id="back-button" 
+            onclick="returnChat()"
+        >
+            <- 
+        </button>
+        <h1 id="convo-title">
+            {chat_name}
+        </h1>
     </header>
 
     <main id="convo-area"></main>
@@ -79,13 +154,37 @@
     <footer id="convo-footer">
         <div class="input-container">
             <input 
-                id="msg-input"
-                type="text"  
-                placeholder="Type your message..."
+                id="msg-input" 
+                type="text" 
+                placeholder="Don't be shy..." 
             />
             <div class="buttons">
                 <button id="sendBtn">Send</button>
             </div>
         </div>
+    </footer>
+</div>
+
+<!--               -->
+<!-- Settings View -->
+<!--               -->
+
+<div id="settings-view" style="display: none;">
+    <header id="convo-header">
+        <button 
+            id="back-button" 
+            onclick="returnHome()"
+        >
+            <- 
+        </button>
+        <h1 id="convo-title">
+            Settings
+        </h1>
+    </header>
+
+    <main id="convo-area"></main>
+
+    <footer id="convo-footer">
+
     </footer>
 </div>
