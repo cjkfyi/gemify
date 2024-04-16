@@ -61,7 +61,7 @@ function activate(context) {
                         })
                     break;
                 case 'execMsgList':
-                    var projID = msg.data.proj.projID;
+                    var projID = msg.data.chat.projID;
                     var chatID = msg.data.chat.chatID;
                     getMsgList(projID, chatID)
                         .then(res => {

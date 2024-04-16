@@ -63,10 +63,10 @@ yarn
 cd extension
 yarn
 cd ../backend
-cat scripts/gen.sh
-./scripts/gen.sh
 # from:  aistudio.google.com
 echo 'API_KEY="..."' >> .env
+cat scripts/gen.sh
+./scripts/gen.sh
 go run ./cmd/main.go
 # try it out, and leave me feedback :)
 ```
