@@ -15,13 +15,13 @@
     </header>
 
     <main>
-        <ul id="convo-list"></ul>
+        <ul id="proj-list"></ul>
     </main>
 
     <footer>
         <button 
             id="new-proj-btn" 
-            onclick="newProjectBtn()"
+            onclick="newProjectView()"
         >
             New Project
         </button>
@@ -36,26 +36,25 @@
     id="new-proj-view" 
     style="display: none;"
 >
-    <header id="convo-header">
+    <header id="convo-header1">
         <button 
-            id="back-button" 
-            onclick="returnHome()"
+            id="back-button2" 
         >
             <- 
         </button>
-        <h1 id="convo-title">
+        <h1 id="convo-title2">
             New Project
         </h1>
     </header>
 
-    <main id="convo-area">
+    <main id="convo-area2">
         TODO: this is where we'll have a form
     </main>
 
     <footer id="convo-footer">
         <button 
             id="new-proj-btn" 
-            onclick="submitProjectAction()"
+            onclick="createProjectBtn()"
         >
             Create
         </button>
@@ -70,30 +69,26 @@
     id="chat-view" 
     style="display: none;"
 >
-    <header id="convo-header">
-        <button 
-            id="back-button" 
-            onclick="returnHome()"
-        >
+    <header id="home-header">
+        <button id="back-button">
             <- 
         </button>
-        <h1 id="convo-title">
-            {proj_name}
-        </h1>
+     
+        <div id="header-cont">
+            <h1 id="proj-title"></h1>
+        </div>
         <p id="subtitle">
-            Then choose a <span>Chat</span>
+            Then choose a <span>Chat</span>,
             and carve your 💎
         </p>
     </header>
 
-    <main id="convo-area">
-        <p>TODO: here is where we'll list chats</p>
-    </main>
+    <main id="chat-list-area"></main>
 
     <footer id="convo-footer">
         <button 
             id="new-proj-btn" 
-            onclick="newChatAction()"
+            onclick="newChatView()"
         >
             New Chat
         </button>
@@ -105,27 +100,30 @@
 <!-- New Chat View -->
 <!--               -->
 
-<div id="new-chat-view" style="display: none;">
-    <header id="convo-header">
+<div 
+    id="new-chat-view" 
+    style="display: none;"
+>
+    <header id="convo-header2">
         <button 
-            id="back-button" 
+            id="back-button2" 
             onclick="returnChat()"
         >
             <- 
         </button>
-        <h1 id="convo-title">
+        <h1 id="convo-title2">
             New Chat
         </h1>
     </header>
 
-    <main id="convo-area">
+    <main id="convo-area2">
         TODO: this is where we'll have a form
     </main>
 
     <footer id="convo-footer">
         <button 
             id="new-proj-btn" 
-            onclick="submitChatAction()"
+            onclick="createChatBtn()"
         >
             Create
         </button>
@@ -139,7 +137,7 @@
 <div id="convo-view" style="display: none;">
     <header id="convo-header">
         <button 
-            id="back-button" 
+            id="back-button2" 
             onclick="returnChat()"
         >
             <- 
@@ -170,19 +168,19 @@
 <!--               -->
 
 <div id="settings-view" style="display: none;">
-    <header id="convo-header">
+    <header id="convo-header2">
         <button 
-            id="back-button" 
+            id="back-button2" 
             onclick="returnHome()"
         >
             <- 
         </button>
-        <h1 id="convo-title">
+        <h1 id="convo-title2">
             Settings
         </h1>
     </header>
 
-    <main id="convo-area"></main>
+    <main id="convo-area2"></main>
 
     <footer id="convo-footer">
 

@@ -1,41 +1,7 @@
 const WebSocket = require('ws');
 
-async function sendGemifyMsg(msg, id, onChunkReceived) {
-
-    const url = 'ws://localhost:8000/ws/chat/' + id;
-    const ws = new WebSocket(url);
-
-    await new Promise((resolve, reject) => {
-        ws.onopen = () => resolve();
-        ws.onerror = (err) => reject(err);
-    });
-
-    ws.send(JSON.stringify({ message: msg }));
-
-    ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        onChunkReceived(data.content);
-    };
-};
-
-async function sendNewConvo() {
-    const res = await fetch('http://localhost:8000/chat', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-    });
-
-    if (!res.ok) {
-        throw new Error(`HTTP Error: ${res.status}`);
-    };
-
-    const data = await res.json();
-    return data;
-};
-
 async function getProjList() {
-    const res = await fetch('http://localhost:8080/projects', {
+    const res = await fetch('http://127.0.0.1:8080/projects', {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json'
@@ -50,8 +16,70 @@ async function getProjList() {
     return data;
 };
 
+async function getChatList(projID) {
+    const url = 'http://127.0.0.1:8080/p/' + projID + '/chats'
+    const res = await fetch(url, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+    });
+
+    if (!res.ok) {
+        throw new Error(`HTTP Error: ${res.status}`);
+    };
+
+    const data = await res.json();
+    return data;
+};
+
+async function getMsgList(projID, chatID) {
+    const url = 'http://127.0.0.1:8080/p/' + 
+        projID + 
+        '/c/' + 
+        chatID + 
+        '/history';
+    const res = await fetch(url, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+    });
+
+    if (!res.ok) {
+        throw new Error(`HTTP Error: ${res.status}`);
+    };
+
+    const data = await res.json();
+    return data;
+};
+
+async function getNewMsg(msg, onChunkReceived) {
+    const data = msg.data
+    const url =
+        'ws://localhost:8080/p/' + 
+        data.chat.projID +
+        '/c/' +
+        data.chat.chatID +
+        '/s';
+    const ws = new WebSocket(url);
+
+    await new Promise((resolve, reject) => {
+        ws.onopen = () => resolve();
+        ws.onerror = (err) => reject(err);
+    });
+
+    ws.send(JSON.stringify({ message: data.message }));
+
+    ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        onChunkReceived(data.content);
+    };
+};
+
 export {
-    sendGemifyMsg,
-    sendNewConvo,
     getProjList,
+    getChatList,
+    getMsgList,
+    getNewMsg,
 };

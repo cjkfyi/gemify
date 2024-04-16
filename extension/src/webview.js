@@ -11,16 +11,29 @@ vscode.postMessage({
     command: 'execProjList',
 });
 
-
 // ℹ️: Listen for new messages, act upon
 window.addEventListener('message', e => {
     const msg = e.data;
 
     switch (msg.command) {
+
         case 'returnProjList':
             var arr = msg.data.projects;
             listRecentProjs(arr);
             break;
+
+        case 'returnChatList':
+            var arr = msg.data.chats;
+            var proj = msg.data.proj;
+            listRecentChats(arr, proj);
+            break;
+
+        case 'returnMsgList':
+            var arr = msg.data.msgs;
+            var chat = msg.data.chat;
+            listRecentMsgs(arr, chat);
+            break;
+
         case 'returnMsg':
             resChunkQueue.push(msg.data);
             if (!resInProg) {
@@ -28,14 +41,11 @@ window.addEventListener('message', e => {
                 streamGeminiRes();
             }
             break;
-
-
-
     };
 });
 
 function listRecentProjs(list) {
-    const convoListEl = document.getElementById('convo-list');
+    const projListEl = document.getElementById('proj-list');
 
     // Breaks if doesn't exist
 
@@ -43,6 +53,7 @@ function listRecentProjs(list) {
     const displayConversations = list.slice(0, displayCount);
 
     displayConversations.forEach((proj, index) => {
+
         // Create Tile Elements
         const listItem = document.createElement('li');
         const tileLink = document.createElement('a');
@@ -50,10 +61,10 @@ function listRecentProjs(list) {
         const tileDesc = document.createElement('p');
 
         // Add Styling Classes
-        listItem.classList.add('convo-tile');
-        tileLink.classList.add('convo-tile-link');
-        tileName.classList.add('convo-tile-name');
-        tileDesc.classList.add('convo-tile-desc');
+        listItem.classList.add('proj-tile');
+        tileLink.classList.add('proj-tile-link');
+        tileName.classList.add('proj-tile-name');
+        tileDesc.classList.add('proj-tile-desc');
 
         // Populate Tile Content
         tileName.textContent = proj.name;
@@ -64,41 +75,134 @@ function listRecentProjs(list) {
         tileLink.appendChild(tileName);
         tileLink.appendChild(tileDesc);
         listItem.appendChild(tileLink);
-        convoListEl.appendChild(listItem);
+        projListEl.appendChild(listItem);
 
+
+        // cleanup after click so they don't linger?
         listItem.addEventListener('click', () => {
 
-            selProjectAction();
-
+            selectProj();
+            
             vscode.postMessage({
-                command: 'execConvoView',
-                data: proj.projID,
+                command: 'execChatList',
+                data: {
+                    projID: proj.projID,
+                    proj: proj,
+                },
             });
         });
     });
 };
 
+function listRecentChats(list, proj) {
+    const chatListEl = document.getElementById('chat-list-area');
+    //
+    const projectTitleEl = document.getElementById('proj-title');
+    projectTitleEl.textContent = proj.name; 
+    //
+    const backBtnEl = document.getElementById('back-button');
+    backBtnEl.addEventListener('click', () => {
+        chatListEl.innerHTML = ''; 
+        returnHome()
+    });
 
+    const displayCount = 4; 
+    const displayChats = list.slice(0, displayCount);
+
+    displayChats.forEach((chat, index) => {
+
+        // Create Tile Elements
+        const listItem = document.createElement('li');
+        const tileLink = document.createElement('a');
+        const tileName = document.createElement('h3');
+        const tileDesc = document.createElement('p');
+
+        // Add Styling Classes
+        listItem.classList.add('chat-tile');
+        tileLink.classList.add('chat-tile-link');
+        tileName.classList.add('chat-tile-name');
+        tileDesc.classList.add('chat-tile-desc');
+
+        // Populate Tile Content
+        tileName.textContent = chat.name;
+        tileDesc.textContent = chat.desc; 
+
+        // Assemble Tile 
+        tileLink.href = '#';
+        tileLink.appendChild(tileName);
+        tileLink.appendChild(tileDesc);
+        listItem.appendChild(tileLink);
+        chatListEl.appendChild(listItem);
+
+
+        listItem.addEventListener('click', () => {
+
+            selectChat();
+            
+            vscode.postMessage({
+                command: 'execMsgList',
+                data: {
+                    chat: chat,
+                    proj: proj,
+                },
+            });
+        });
+    });
+};
+
+function listRecentMsgs(list, chat) {
+
+    const convoTitleEl = document.getElementById('convo-title');
+    convoTitleEl.textContent = chat.name;
+
+    const sendMsgBtn = document.getElementById('sendBtn');
+    const msgInput = document.getElementById('msg-input');
+
+    sendMsgBtn.addEventListener('click', function () {
+
+        const msg = msgInput.value;
+        renderUsrMsg(msg);
+        
+        msgInput.value = ''; // reset
+
+        vscode.postMessage({
+            command: 'execNewMsg',
+            data: {
+                chat: chat,
+                message: msg,
+            },
+        });
+    });
+
+    //
+
+    const convoArea = document.getElementById('convo-area');
+    convoArea.innerHTML = ''; // reset
+    list.forEach((msg) => {
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('message');
+
+        if (msg.isUser) {
+            messageElement.classList.add('user');
+        } else {
+            messageElement.classList.add('bot'); 
+        }
+
+        messageElement.textContent = msg.message;
+        convoArea.appendChild(messageElement);    
+    });
+    convoArea.scrollTop = convoArea.scrollHeight; 
+}
 
 
 //
 
-function newProjectBtn() {
+function newProjectView() {
     document.getElementById('home-view').style.display = 'none';
     document.getElementById('new-proj-view').style.display = 'flex';
 };
 
-function submitProjectAction() {
-    // vscode.postMessage({
-    //     command: 'execNewProj',
-    // });
-    document.getElementById('new-proj-view').style.display = 'none';
-    document.getElementById('chat-view').style.display = 'flex';
-};
-
-//
-
-function newChatAction() {
+function newChatView() {
     // vscode.postMessage({
     //     command: 'execNewProj',
     // });
@@ -106,12 +210,37 @@ function newChatAction() {
     document.getElementById('new-chat-view').style.display = 'flex';
 }
 
-function submitChatAction() {
+//
+
+function createProjectBtn() {
+
+    // todo: take inputted data
+    //       create a new project 
+    //       route the user to it
+
+    // shoot the req w/ passed data, shape?
+
     // vscode.postMessage({
-//     command: 'execNewProj',
-// });
-document.getElementById('new-chat-view').style.display = 'none';
-document.getElementById('convo-view').style.display = 'flex';
+    //     command: 'execNewProj',
+    // });
+    document.getElementById('new-proj-view').style.display = 'none';
+    document.getElementById('chat-view').style.display = 'flex';
+};
+
+
+function createChatBtn() {
+
+    // todo: take inputted data
+    //       create a new chat  
+    //       route the user to convo
+
+    // shoot the req w/ passed data, shape?
+
+    // vscode.postMessage({
+    //     command: 'execNewProj',
+    // });
+    document.getElementById('new-chat-view').style.display = 'none';
+    document.getElementById('convo-view').style.display = 'flex';
 };
 
 //
@@ -124,7 +253,10 @@ function returnHome() {
     // vscode.postMessage({
     //     command: 'execReturnHome',
     // });
-    // document.getElementById('project-view').style.display = 'none';
+    document.getElementById('settings-view').style.display = 'none';
+    document.getElementById('new-chat-view').style.display = 'none';
+    document.getElementById('chat-view').style.display = 'none';
+    document.getElementById('convo-view').style.display = 'none';
     document.getElementById('new-proj-view').style.display = 'none';
     document.getElementById('home-view').style.display = 'flex';
 };
@@ -133,19 +265,25 @@ function returnChat() {
     // vscode.postMessage({
     //     command: 'execReturnHome',
     // });
-    // document.getElementById('project-view').style.display = 'none';
+    document.getElementById('settings-view').style.display = 'none';
     document.getElementById('new-chat-view').style.display = 'none';
+    document.getElementById('home-view').style.display = 'none';
+    document.getElementById('convo-view').style.display = 'none';
+    document.getElementById('new-proj-view').style.display = 'none';
     document.getElementById('chat-view').style.display = 'flex';
 };
 
+//
 
-
-
-
-function selProjectAction() {
+function selectProj() {
     document.getElementById('home-view').style.display = 'none';
     document.getElementById('chat-view').style.display = 'flex';
-}
+};
+
+function selectChat() {
+    document.getElementById('chat-view').style.display = 'none';
+    document.getElementById('convo-view').style.display = 'flex';
+};
 
 //
 

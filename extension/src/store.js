@@ -1,13 +1,16 @@
 import { createStore } from 'zustand/vanilla';
 
 const store = createStore(() => ({
-    // Conversation State 
+
+    activeProjID: null,
+    setActiveProjID: (id) => setState({ activeProjID: id }),
+
     conversations: [],
-    activeConvoId: null,
-    setActiveConvoId: (convoId) => setState({ activeConvoId: convoId }),
     addConversation: (conversation) => setState(state => ({
         conversations: [...state.conversations, conversation]
     })),
+
+
     currentResponse: [], // Initialize as an array
     appendResponseChunk: (chunk) => setState(state => ({ currentResponse: [...state.currentResponse, chunk] })),
     setCurrentResponse: (newResponse) => setState({ currentResponse: newResponse }),

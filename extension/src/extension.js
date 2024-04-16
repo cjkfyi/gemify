@@ -3,9 +3,10 @@ import * as path from 'path';
 import * as fs from 'fs';
 import store from './store';
 import {
-    sendNewConvo,
     getProjList,
-    sendGemifyMsg
+    getChatList,
+    getMsgList,
+    getNewMsg,
 } from './comms';
 
 
@@ -43,28 +44,59 @@ function activate(context) {
                             console.error(err)
                         })
                     break;
-
-                case 'execNewProjView':
-                    gemify.webview.postMessage({
-                        command: 'returnNewProjView',
+                case 'execChatList':
+                    var projID = msg.data.projID;
+                    getChatList(projID)
+                        .then(res => {
+                            gemify.webview.postMessage({
+                                command: 'returnChatList',
+                                data: {
+                                    chats: res.data.chats,
+                                    proj: msg.data.proj,
+                                }
+                            });
+                        })
+                        .catch(err => {
+                            console.error(err)
+                        })
+                    break;
+                case 'execMsgList':
+                    var projID = msg.data.proj.projID;
+                    var chatID = msg.data.chat.chatID;
+                    getMsgList(projID, chatID)
+                        .then(res => {
+                            gemify.webview.postMessage({
+                                command: 'returnMsgList',
+                                data: {
+                                    msgs: res.data.messages,
+                                    chat: msg.data.chat,
+                                }
+                            });
+                        })
+                        .catch(err => {
+                            console.error(err)
+                        })
+                    break;
+                case 'execNewMsg':
+                    getNewMsg(msg, (chunk) => {
+                        gemify.webview.postMessage({
+                            command: 'returnMsg',
+                            data: chunk,
+                        });
                     });
                     break;
 
 
-                case 'execSelProjView':
-                    const proj = msg.data
-
-                    store.getState().setActiveConvoId(proj)
                     
-                    gemify.webview.postMessage({
-                        command: 'returnSelProjView',
-                        data: proj,
-                    });
-                    break;
 
-                case 'execReturnHome':
-                    store.getState().setActiveConvoId(null)
-                    break;
+                // case 'execHomeView':
+                //     store.getState().setActiveConvoId(null)
+                //     break;
+
+
+                // case 'execReturnHome':
+                //     store.getState().setActiveConvoId(null)
+                //     break;
 
                 // case 'execNewProj':
                 //     gemify.webview.postMessage({
@@ -99,15 +131,7 @@ function activate(context) {
                 //         })
                 //     break;
 
-                // case 'execNewMsg':
-                //     const id = store.getState().activeConvoId;
-                //     sendGemifyMsg(msg.message, id, (chunk) => {
-                //         gemify.webview.postMessage({
-                //             command: 'returnMsg',
-                //             data: chunk,
-                //         });
-                //     });
-                //     break;
+
 
             }
         });

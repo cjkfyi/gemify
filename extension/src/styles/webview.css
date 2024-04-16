@@ -23,6 +23,10 @@ main {
     flex: 1;
 }
 
+#home-header {
+    user-select: none;
+}
+
 #header-cont {
     height: 56px;
 }
@@ -50,13 +54,13 @@ main {
 
 */
 
-#convo-list {
+#proj-list {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 20px;
 }
 
-.convo-tile {
+.proj-tile {
     border: 1px solid lightgray;
     border-radius: 8px;
     align-items: center;
@@ -66,11 +70,11 @@ main {
     display: flex;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
 }
-.convo-tile:hover {
+.proj-tile:hover {
     cursor: pointer;
 }
 
-.convo-tile-link {
+.proj-tile-link {
     display: block; /* Existing rule - keep this */
     text-decoration: none;
     color: inherit;
@@ -82,34 +86,34 @@ main {
     justify-content: center;
 }
 
-.convo-tile-link:hover .convo-tile-content {
+.proj-tile-link:hover .convo-tile-content {
     text-decoration: underline;
 } 
 
-.convo-tile-name {
+.proj-tile-name {
     font-size: 1.2em;
     font-weight: bold;
     margin-bottom: 5px;
     font-family: monospace;
 }
 
-.convo-tile-desc {
+.proj-tile-desc {
     font-size: 0.9em;
     line-height: 1.2;
 }
 
 @media (max-width: 800px) { 
-    #convo-list {
+    #proj-list {
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     }
 
-    .convo-tile {
+    .proj-tile {
         padding: 20px;
     }
 }
 
 @media (max-width: 600px) {
-    #convo-list {
+    #proj-list {
         grid-template-columns: 1fr;
     }
 }

@@ -2,17 +2,15 @@
 
 > *__not another coding assistant__?*
 
-## 🤔
-
-I'm prototyping a multi-turn, conversational extension for VSCode. After being fed-up with having to Copy and Paste my code, back-and-forth a million times, for a more current understanding every turn. Thus, `gemify` was suddenly born. 
-
 ## ✨
 
-Hereby my pledge to maintain this repo. Planning to scale, especially as goog figures out the unlimited token ordeal! Simply imagine the near-future.
+This is a multi-turn, conversational extension for VSCode. After being fed-up with having to Copy and Paste my code, back-and-forth a million times (for a more current understanding every turn). Thus, `gemify` was born and streamlines this process.
 
 ## 📸
 
-:D
+demo.gif
+
+homeview.png
 
 ## 🧰
 
@@ -70,7 +68,7 @@ cd ../backend
 cat scripts/gen.sh
 ./scripts/gen.sh
 go run ./cmd/main.go
-# ezpz, help me out in anyway possible :)
+# try it out, and leave me feedback :)
 ```
 
 ##### Tip:
