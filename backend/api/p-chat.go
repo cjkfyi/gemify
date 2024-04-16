@@ -62,7 +62,7 @@ func CreateChat(
 				Data:    data,
 				Status:  "error",
 			}
-			redFlag(w, http.StatusBadRequest, res)
+			redFlag(w, http.StatusUnprocessableEntity, res)
 			return
 		case
 			"`name` cannot exceed 160 chars",
@@ -76,7 +76,7 @@ func CreateChat(
 				Data:    data,
 				Status:  "error",
 			}
-			redFlag(w, http.StatusBadRequest, res)
+			redFlag(w, http.StatusUnprocessableEntity, res)
 			return
 		case
 			"failed ds op",
@@ -130,7 +130,7 @@ func GetChat(
 				Data:    data,
 				Status:  "error",
 			}
-			redFlag(w, http.StatusBadRequest, res)
+			redFlag(w, http.StatusUnprocessableEntity, res)
 			return
 		case
 			"failed ds op",
@@ -242,20 +242,6 @@ func UpdateChat(
 	if err != nil {
 		switch err.Error() {
 		case
-			"`projID` param is required",
-			"`chatID` param is required":
-			data := map[string]interface{}{
-				"code":    store.ERR_MissingInput,
-				"message": err.Error(),
-			}
-			res := Response{
-				Command: "execUpdateChat",
-				Data:    data,
-				Status:  "error",
-			}
-			redFlag(w, http.StatusBadRequest, res)
-			return
-		case
 			"invalid `projID` parameter",
 			"invalid `chatID` parameter":
 			data := map[string]interface{}{
@@ -270,6 +256,20 @@ func UpdateChat(
 			redFlag(w, http.StatusBadRequest, res)
 			return
 		case
+			"`projID` param is required",
+			"`chatID` param is required":
+			data := map[string]interface{}{
+				"code":    store.ERR_MissingInput,
+				"message": err.Error(),
+			}
+			res := Response{
+				Command: "execUpdateChat",
+				Data:    data,
+				Status:  "error",
+			}
+			redFlag(w, http.StatusUnprocessableEntity, res)
+			return
+		case
 			"name cannot exceed 160 chars",
 			"desc cannot exceed 260 chars":
 			data := map[string]interface{}{
@@ -281,7 +281,7 @@ func UpdateChat(
 				Data:    data,
 				Status:  "error",
 			}
-			redFlag(w, http.StatusBadRequest, res)
+			redFlag(w, http.StatusUnprocessableEntity, res)
 			return
 		case
 			"failed ds op",
@@ -349,7 +349,7 @@ func DeleteChat(
 				Data:    data,
 				Status:  "error",
 			}
-			redFlag(w, http.StatusBadRequest, res)
+			redFlag(w, http.StatusUnprocessableEntity, res)
 			return
 		case
 			"failed ds op",

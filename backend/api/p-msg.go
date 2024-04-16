@@ -61,7 +61,7 @@ func CreateMsg(
 				Data:    data,
 				Status:  "error",
 			}
-			redFlag(w, http.StatusBadRequest, res)
+			redFlag(w, http.StatusUnprocessableEntity, res)
 			return
 		case
 			"failed ds op",
