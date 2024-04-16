@@ -101,8 +101,8 @@ func GetMessage(
 //
 
 func ListMessages(
-	chatID,
-	projID string,
+	projID,
+	chatID string,
 ) (
 	[]Message,
 	error,

@@ -53,7 +53,7 @@ func (s *server) SendMessage(
 	var convo []*genai.Content
 
 	hist, err := store.ListMessages(
-		i.ChatID, i.ProjID,
+		i.ProjID, i.ChatID,
 	)
 	if err != nil {
 		return err

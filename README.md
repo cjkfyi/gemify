@@ -4,7 +4,7 @@
 
 ## ✨
 
-This is a multi-turn, conversational extension for VSCode. After being fed-up with having to Copy and Paste my code, back-and-forth a million times (for a more current understanding every turn). Thus, `gemify` was born and streamlines this process.
+This is a multi-turn, conversational extension for VSCode. After being fed-up with having to Copy and Paste my code, back-and-forth a million times (for a more current understanding every turn). Thus, `gemify` was born.
 
 ## 📸
 
@@ -19,7 +19,7 @@ homeview.png
 - Well-orchestrated H/2 Proxy & gRPC server.
 - Utilizing `bitcask` & `bitio` for our storage.
 - Custom logger and improved err handling. (🔜™️)
-s
+
 ```go
 require (
 	github.com/go-chi/chi/v5               v5.0.12
@@ -59,14 +59,14 @@ require (
 # first, cd somewhere awesome ~ or just ~
 git clone git@github.com:cjkfyi/gemify.git
 cd gemify
-# from:  aistudio.google.com
-echo 'API_KEY="..."' >> .env
 yarn
 cd extension
 yarn
 cd ../backend
 cat scripts/gen.sh
 ./scripts/gen.sh
+# from:  aistudio.google.com
+echo 'API_KEY="..."' >> .env
 go run ./cmd/main.go
 # try it out, and leave me feedback :)
 ```
