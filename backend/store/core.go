@@ -51,8 +51,8 @@ func OpenMeta(
 //
 
 func openChat(
-	chatID,
-	projID string,
+	projID,
+	chatID string,
 ) (
 	*bitcask.DB,
 	error,

@@ -191,7 +191,7 @@ func StreamMsg(
 		return
 	}
 
-	_, err = store.CreateMessage(chatID, projID, string(msg), true)
+	_, err = store.CreateMessage(projID, chatID, string(msg), true)
 	if err != nil {
 		dataRes := map[string]interface{}{
 			"code": store.ERR_Internal,
@@ -317,7 +317,7 @@ func StreamMsg(
 
 	res := buffer.String()
 
-	_, err = store.CreateMessage(chatID, projID, res, false)
+	_, err = store.CreateMessage(projID, chatID, res, false)
 	if err != nil {
 		dataRes := map[string]interface{}{
 			"code": store.ERR_Internal,

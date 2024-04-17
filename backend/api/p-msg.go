@@ -153,10 +153,10 @@ func ListMsgs(
 	w http.ResponseWriter,
 	r *http.Request,
 ) {
-	chatID := chi.URLParam(r, "chatID")
 	projID := chi.URLParam(r, "projID")
+	chatID := chi.URLParam(r, "chatID")
 
-	msgArr, err := store.ListMessages(chatID, projID)
+	msgArr, err := store.ListMessages(projID, chatID)
 	if err != nil {
 		switch err.Error() {
 		case

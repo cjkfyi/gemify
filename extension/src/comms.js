@@ -1,7 +1,7 @@
 const WebSocket = require('ws');
 
 async function getProjList() {
-    
+
     const res = await fetch(
         'http://127.0.0.1:8080/projects', {
             method: 'GET',
@@ -61,9 +61,11 @@ async function getMsgList(projID, chatID) {
 
 async function getNewMsg(msg, onChunkReceived) {
 
-    const data = msg.data
-    const projID = data.chat.projID
-    const chatID = data.chat.chatID
+    const chat = msg.data.chat;
+    const projID = chat.projID;
+    const chatID = chat.chatID;
+    const message = msg.data.msg;
+
 
     const url =
         'ws://localhost:8080/p/' + 
@@ -76,11 +78,16 @@ async function getNewMsg(msg, onChunkReceived) {
         ws.onerror = (err) => reject(err);
     });
 
-    ws.send(JSON.stringify({ message: data.message }));
+    ws.send(message);
 
-    ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        onChunkReceived(data.content);
+    ws.onmessage = (e) => {
+        const data = JSON.parse(e.data);
+        onChunkReceived(data);
+    };
+
+    ws.onclose = () => {
+        const data = { content: "EOF"};
+        onChunkReceived(data);
     };
 };
 

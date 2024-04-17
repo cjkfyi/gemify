@@ -19,32 +19,40 @@ window.addEventListener('message', e => {
 
         case 'returnProjList':
             var arr = msg.data.projects;
+
             listRecentProjs(arr);
             break;
 
         case 'returnChatList':
             var arr = msg.data.chats;
             var proj = msg.data.proj;
+
             listRecentChats(arr, proj);
             break;
 
         case 'returnMsgList':
             var arr = msg.data.msgs;
             var chat = msg.data.chat;
+
             listRecentMsgs(arr, chat);
             break;
 
         case 'returnMsg':
-            resChunkQueue.push(msg.data);
+            var chunk = msg.data.content
+            
+            resChunkQueue.push(chunk);
             if (!resInProg) {
                 resInProg = true;
                 streamGeminiRes();
-            }
+            } 
             break;
     };
 });
 
+//
+
 function listRecentProjs(list) {
+
     const projListEl = document.getElementById('proj-list');
 
     // Breaks if doesn't exist
@@ -54,23 +62,19 @@ function listRecentProjs(list) {
 
     displayConversations.forEach((proj, index) => {
 
-        // Create Tile Elements
         const listItem = document.createElement('li');
         const tileLink = document.createElement('a');
         const tileName = document.createElement('h3');
         const tileDesc = document.createElement('p');
 
-        // Add Styling Classes
         listItem.classList.add('proj-tile');
         tileLink.classList.add('proj-tile-link');
         tileName.classList.add('proj-tile-name');
         tileDesc.classList.add('proj-tile-desc');
 
-        // Populate Tile Content
         tileName.textContent = proj.name;
         tileDesc.textContent = proj.desc;
 
-        // Assemble Tile 
         tileLink.href = '#';
         tileLink.appendChild(tileName);
         tileLink.appendChild(tileDesc);
@@ -78,7 +82,6 @@ function listRecentProjs(list) {
         projListEl.appendChild(listItem);
 
 
-        // cleanup after click so they don't linger?
         listItem.addEventListener('click', () => {
 
             selectProj();
@@ -95,39 +98,42 @@ function listRecentProjs(list) {
 };
 
 function listRecentChats(list, proj) {
+
     const chatListEl = document.getElementById('chat-list-area');
+
     //
+
     const projectTitleEl = document.getElementById('proj-title');
     projectTitleEl.textContent = proj.name; 
+
     //
+
     const backBtnEl = document.getElementById('back-button');
     backBtnEl.addEventListener('click', () => {
         chatListEl.innerHTML = ''; 
         returnHome()
     });
 
+    //
+
     const displayCount = 4; 
     const displayChats = list.slice(0, displayCount);
 
     displayChats.forEach((chat, index) => {
 
-        // Create Tile Elements
         const listItem = document.createElement('li');
         const tileLink = document.createElement('a');
         const tileName = document.createElement('h3');
         const tileDesc = document.createElement('p');
 
-        // Add Styling Classes
         listItem.classList.add('chat-tile');
         tileLink.classList.add('chat-tile-link');
         tileName.classList.add('chat-tile-name');
         tileDesc.classList.add('chat-tile-desc');
 
-        // Populate Tile Content
         tileName.textContent = chat.name;
         tileDesc.textContent = chat.desc; 
 
-        // Assemble Tile 
         tileLink.href = '#';
         tileLink.appendChild(tileName);
         tileLink.appendChild(tileDesc);
@@ -169,7 +175,7 @@ function listRecentMsgs(list, chat) {
             command: 'execNewMsg',
             data: {
                 chat: chat,
-                message: msg,
+                msg: msg,
             },
         });
     });
@@ -188,8 +194,10 @@ function listRecentMsgs(list, chat) {
             messageElement.classList.add('bot'); 
         }
 
-        messageElement.textContent = msg.message;
-        convoArea.appendChild(messageElement);    
+      const htmlContent = marked.parse(msg.message); 
+      messageElement.innerHTML = htmlContent;
+  
+      convoArea.appendChild(messageElement);  
     });
     convoArea.scrollTop = convoArea.scrollHeight; 
 }
@@ -250,9 +258,9 @@ function createChatBtn() {
 //
 
 function returnHome() {
-    // vscode.postMessage({
-    //     command: 'execReturnHome',
-    // });
+    vscode.postMessage({
+        command: 'execReturnHome',
+    });
     document.getElementById('settings-view').style.display = 'none';
     document.getElementById('new-chat-view').style.display = 'none';
     document.getElementById('chat-view').style.display = 'none';
@@ -262,9 +270,9 @@ function returnHome() {
 };
 
 function returnChat() {
-    // vscode.postMessage({
-    //     command: 'execReturnHome',
-    // });
+    vscode.postMessage({
+        command: 'execReturnChat',
+    });
     document.getElementById('settings-view').style.display = 'none';
     document.getElementById('new-chat-view').style.display = 'none';
     document.getElementById('home-view').style.display = 'none';
@@ -318,9 +326,14 @@ function streamGeminiRes() {
     } else {
         test += chunk;
     }
-
+    
     let messageContent;
-    messageContent = chunk;
+
+    if (chunk) { 
+        messageContent = chunk; 
+    } else {
+        return; 
+    }
 
     let currentIndex = 0;
     const animationInterval = 10;
@@ -349,22 +362,3 @@ function renderUsrMsg(text) {
     convoArea.appendChild(messageElement);
     convoArea.scrollTop = convoArea.scrollHeight;
 };
-
-
-// ℹ️: Wait for DOM, before attempting anything element-wise
-// document.addEventListener('DOMContentLoaded', function () {
-//     const sendMsgBtn = document.getElementById('send-btn');
-//     const msgInput = document.getElementById('msg-input');
-
-//     sendMsgBtn.addEventListener('click', function () {
-//         const msg = msgInput.value;
-//         msgInput.value = '';
-
-//         renderUsrMsg(msg);
-
-//         vscode.postMessage({
-//             command: 'execNewMsg',
-//             message: msg,
-//         });
-//     });
-// });

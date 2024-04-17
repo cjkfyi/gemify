@@ -85,54 +85,6 @@ function activate(context) {
                         });
                     });
                     break;
-
-
-                    
-
-                // case 'execHomeView':
-                //     store.getState().setActiveConvoId(null)
-                //     break;
-
-
-                // case 'execReturnHome':
-                //     store.getState().setActiveConvoId(null)
-                //     break;
-
-                // case 'execNewProj':
-                //     gemify.webview.postMessage({
-                //         command: 'returnNewProj',
-                //     });
-                //     break;
-
-
-
-                // case 'execConvoView':
-                //     const convoID = msg.data
-                //     store.getState().setActiveConvoId(convoID)
-                //     gemify.webview.postMessage({
-                //         command: 'returnConvoView',
-                //         data: convoID,
-                //     });
-                //     break;
-
-
-                // case 'execHomeView':
-                //     store.getState().setActiveConvoId(null)
-                //     break;
-
-                // case 'execNewConvo':
-                //     sendNewConvo()
-                //         .then(res => {
-                //             const convoId = res.data.convoID;
-                //             store.getState().setActiveConvoId(convoId)
-                //         })
-                //         .catch(err => {
-                //             console.error(err)
-                //         })
-                //     break;
-
-
-
             }
         });
     });

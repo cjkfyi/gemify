@@ -11,8 +11,8 @@ import (
 )
 
 func CreateMessage(
-	chatID,
 	projID,
+	chatID,
 	msg string,
 	isUser bool,
 ) (

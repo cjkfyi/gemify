@@ -4,7 +4,7 @@
 
 ## ✨
 
-This is a multi-turn, conversational extension for VSCode. After being fed-up with having to Copy and Paste my code, back-and-forth a million times (for a more current understanding every turn). Thus, `gemify` was born.
+This is a multi-turn, conversational extension for VSCode. After being fed-up with having to copy-and-paste my code, back-and-forth a million times (for a more current understanding every turn), `gemify` was born.
 
 ## 📸
 
@@ -14,11 +14,11 @@ homeview.png
 
 ## 🧰
 
-#### Backend (Go)
+#### Backend
 
-- Well-orchestrated H/2 Proxy & gRPC server.
+- Well-orchestrated H/2 Proxy & gRPC server. ⚙️
 - Utilizing `bitcask` & `bitio` for our storage.
-- Custom logger and improved err handling. (🔜™️)
+- Custom logger & improved err handling (🔜™️).
 
 ```go
 require (
@@ -35,10 +35,9 @@ require (
 )
 ```
 
-#### Frontend (JS)
+#### Extension
 
-- Custom, and soon to be responsive UI. 
-- Webview API for integration with VSCode.
+- Custom, and soon-to-be fully responsive UI.
 
 ```json
   "devDependencies": {

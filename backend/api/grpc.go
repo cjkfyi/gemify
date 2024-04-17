@@ -97,14 +97,6 @@ func (s *server) SendMessage(
 			return err
 		}
 	}
-
-	botReply := &pb.Message{
-		Content: "EOF",
-	}
-
-	if err := stream.Send(botReply); err != nil {
-		return err
-	} // Solid
 	return nil
 }
 
